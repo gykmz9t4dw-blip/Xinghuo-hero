@@ -3,192 +3,129 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>星火西游 · 横版2D</title>
+<meta name="theme-color" content="#17130f">
+<link rel="manifest" href="manifest.json">
+<title>星火西游</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#f7ead0;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
-body{display:flex;align-items:center;justify-content:center}
-#app{position:relative;width:100vw;height:100vh;max-width:177.78vh;max-height:56.25vw;overflow:hidden;background:#20160f}
-canvas{display:block;width:100%;height:100%;image-rendering:auto}
-#tip{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:11px;color:#d9c6a2;opacity:.75;pointer-events:none}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d0b09;color:#f4e4c2;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;touch-action:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#18130f}
+#rotate{display:none;position:fixed;inset:0;z-index:20;background:#111;color:#f5dfad;align-items:center;justify-content:center;text-align:center;font-size:20px;padding:30px}
+@media (orientation:portrait){#rotate{display:flex}}
 </style>
 </head>
 <body>
-<div id="app"><canvas id="game"></canvas><div id="tip">横屏体验 · 点击角色附近可移动 · 战斗中选择技能</div></div>
+<canvas id="game"></canvas><div id="rotate">请将 iPhone 横过来<br><small>横屏体验游戏</small></div>
 <script>
-const c=document.getElementById('game'),x=c.getContext('2d');
-let W=1280,H=720,D=devicePixelRatio||1;
-function resize(){let r=Math.min(innerWidth/1280,innerHeight/720);W=Math.round(innerWidth/r);H=Math.round(innerHeight/r);c.width=innerWidth*D;c.height=innerHeight*D;x.setTransform(c.width/innerWidth,0,0,c.height/innerHeight,0,0); x.scale(innerWidth/W,innerHeight/H)}
-addEventListener('resize',resize); resize();
+'use strict';
+const C=document.getElementById('game'),ctx=C.getContext('2d');
+let vw=innerWidth,vh=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
+function resize(){vw=innerWidth;vh=innerHeight;C.width=vw*dpr;C.height=vh*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)} addEventListener('resize',resize);resize();
 
-const S={scene:'world',gold:1280,level:12,exp:72,hp:860,maxhp:860,mp:310,maxmp:310,petHp:520,enemyHp:[420,330,280],cam:0,heroX:380,move:0,turn:0,msg:'云州城外，妖气从古道尽头升起。',saveKey:'xinghuo2d'};
-const hero={name:'玄曜',cls:'焰剑客',hair:0};
-let particles=[], floaters=[], last=0, anim=0;
+const G={scene:'town',heroX:310,heroY:465,cam:0,dir:1,walk:false,turn:1,selected:0,msg:'长安城外的古道传来妖气。',gold:158760,level:28,exp:28634,next:82000,hp:1258,maxhp:1258,mp:682,maxmp:682,pet:980,petMax:980,enemy:[{n:'山妖',hp:760,max:760,type:0},{n:'小妖',hp:520,max:520,type:1},{n:'野狼',hp:430,max:430,type:2}],log:['[世界] 月下独酌：有人组队刷大雁塔吗？','[队伍] 江湖小虾：收高敏男鬼，价格好说！'],fx:[],float:[],saving:false};
+const keys={};
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key>='1'&&e.key<='5'&&G.scene==='battle')skill(+e.key-1);if(e.key==='Escape')G.scene='town'});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
-function rr(ctx,a,b,w,h,r){ctx.beginPath();ctx.roundRect(a,b,w,h,r);ctx.fill()}
-function strokeRR(a,b,w,h,r){x.beginPath();x.roundRect(a,b,w,h,r);x.stroke()}
-function text(t,a,b,size=20,fill='#fff',align='left'){x.font=`${size}px "PingFang SC","Microsoft YaHei",sans-serif`;x.fillStyle=fill;x.textAlign=align;x.textBaseline='middle';x.fillText(t,a,b)}
-function grad(a,b,c1,c2){let g=x.createLinearGradient(0,a,0,b);g.addColorStop(0,c1);g.addColorStop(1,c2);return g}
-function panel(a,b,w,h){x.fillStyle='rgba(30,18,14,.88)';rr(x,a,b,w,h,14);x.strokeStyle='#b9975b';x.lineWidth=2;strokeRR(a,b,w,h,14)}
-function bar(a,b,w,h,val,max,c1,c2){x.fillStyle='rgba(0,0,0,.55)';rr(x,a,b,w,h,h/2);x.fillStyle=grad(b,b+h,c1,c2);rr(x,a,b,Math.max(3,w*val/max),h,h/2)}
+function font(n){return `${n}px -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif`}
+function txt(s,x,y,n=16,col='#f5e4c2',align='left'){ctx.font=font(n);ctx.fillStyle=col;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(s,x,y)}
+function panel(x,y,w,h,a=.86){ctx.fillStyle=`rgba(20,16,13,${a})`;ctx.fillRect(x,y,w,h);ctx.strokeStyle='#8f774b';ctx.lineWidth=1.5;ctx.strokeRect(x+.5,y+.5,w-1,h-1)}
+function bar(x,y,w,h,v,m,c1,c2){ctx.fillStyle='#171310';ctx.fillRect(x,y,w,h);let p=Math.max(0,Math.min(1,v/Math.max(1,m)));let g=ctx.createLinearGradient(x,y,x+w,y);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.fillRect(x,y,w*p,h);ctx.strokeStyle='#9a8051';ctx.strokeRect(x+.5,y+.5,w-1,h-1)}
+function button(x,y,w,h,label,sub,fn){ctx.fillStyle='rgba(61,44,30,.96)';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#a58a57';ctx.strokeRect(x+.5,y+.5,w-1,h-1);txt(label,x+w/2,y+h*.42,17,'#f6dfad','center');if(sub)txt(sub,x+w/2,y+h*.73,11,'#bfae8e','center');return [x,y,w,h,fn]}
+function hit(px,py,r){return px>=r[0]&&py>=r[1]&&px<=r[0]+r[2]&&py<=r[1]+r[3]}
 
-function cloud(cx,cy,s){x.fillStyle='rgba(245,239,215,.16)';for(let i=0;i<5;i++){x.beginPath();x.arc(cx+(i-2)*38*s,cy+(i%2)*8*s,28*s+(i%2)*8*s,0,7);x.fill()}}
-function tree(px,py,s){x.fillStyle='#2e241b';x.fillRect(px-8*s,py,16*s,100*s);x.fillStyle='#263d2e';[[0,-35,46],[35,-10,35],[-32,-8,34],[5,8,40]].forEach(q=>{x.beginPath();x.arc(px+q[0]*s,py+q[1]*s,q[2]*s,0,7);x.fill()})}
-function mountain(px,base,s,col){x.fillStyle=col;x.beginPath();x.moveTo(px-250*s,base);x.lineTo(px-80*s,base-170*s);x.lineTo(px+10*s,base-60*s);x.lineTo(px+110*s,base-210*s);x.lineTo(px+260*s,base);x.closePath();x.fill()}
-function worldBg(){
- x.fillStyle=grad(0,H,'#171c32','#c18c67');x.fillRect(0,0,W,H);
- cloud(260,145,1);cloud(890,110,.8);
- mountain(240,530,1.4,'#343444');mountain(720,535,1.2,'#454152');mountain(1120,530,1.0,'#302f3d');
- x.fillStyle='#655544';x.fillRect(0,510,W,210);
- x.fillStyle='#80684b';x.beginPath();x.moveTo(0,590);x.bezierCurveTo(300,530,530,650,760,570);x.bezierCurveTo(980,500,1120,600,1280,540);x.lineTo(1280,720);x.lineTo(0,720);x.fill();
- for(let i=0;i<7;i++)tree(70+i*210,455+(i%2)*20,.75+(i%3)*.12);
- // distant gate
- x.fillStyle='#5b2f24';x.fillRect(1010,300,30,220);x.fillRect(1180,300,30,220);x.fillRect(1000,275,220,35);
- x.fillStyle='#bda46b';text('云州古道',1110,292,22,'#f3d9a0','center');
- // road stones
- x.fillStyle='rgba(31,22,17,.25)';for(let i=0;i<14;i++){x.beginPath();x.ellipse(i*105+20,655-(i%3)*12,50,12,0,0,7);x.fill()}
+function sky(){let g=ctx.createLinearGradient(0,0,0,vh);g.addColorStop(0,'#182033');g.addColorStop(.62,'#9d7057');g.addColorStop(1,'#d2a56d');ctx.fillStyle=g;ctx.fillRect(0,0,vw,vh)}
+function mountain(x,y,s,col){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x-250*s,y);ctx.lineTo(x-90*s,y-190*s);ctx.lineTo(x+10*s,y-80*s);ctx.lineTo(x+120*s,y-220*s);ctx.lineTo(x+280*s,y);ctx.closePath();ctx.fill()}
+function tree(x,y,s){ctx.fillStyle='#35251d';ctx.fillRect(x-5*s,y,10*s,90*s);ctx.fillStyle='#20372c';[[0,-35,42],[-28,-5,32],[28,-5,32],[0,5,38]].forEach(a=>{ctx.beginPath();ctx.arc(x+a[0]*s,y+a[1]*s,a[2]*s,0,7);ctx.fill()})}
+function drawTown(){
+ sky();for(let i=0;i<6;i++)mountain(100+i*260,470,1,'#3b3945');
+ ctx.fillStyle='#67513d';ctx.fillRect(0,475,vw,vh-475);
+ ctx.fillStyle='#8c7252';ctx.beginPath();ctx.moveTo(0,560);ctx.quadraticCurveTo(vw*.4,490,vw,555);ctx.lineTo(vw,vh);ctx.lineTo(0,vh);ctx.fill();
+ for(let i=0;i<9;i++)tree(i*180+80,390+(i%2)*25,.65);
+ // city gate
+ ctx.fillStyle='#593126';ctx.fillRect(760,250,38,240);ctx.fillRect(1070,250,38,240);ctx.fillRect(740,225,390,55);ctx.fillStyle='#b28b4d';ctx.fillRect(770,240,330,5);txt('长安古道',935,252,23,'#f2d69c','center');
+ // bridge/water
+ ctx.fillStyle='#354d55';ctx.fillRect(0,470,220,65);ctx.fillStyle='#5f7b79';ctx.fillRect(0,488,220,28);
+ for(let i=0;i<6;i++){ctx.fillStyle='#927850';ctx.fillRect(i*40,455,28,10)}
+ // lanterns
+ for(let i=0;i<5;i++){let px=680+i*110;ctx.strokeStyle='#32251c';ctx.beginPath();ctx.moveTo(px,290,px,355);ctx.stroke();ctx.fillStyle='#b84e38';ctx.beginPath();ctx.ellipse(px,365,15,20,0,0,7);ctx.fill()}
+ // HUD
+ panel(14,14,310,72);txt('星火西游',30,38,22,'#f1d49b');txt(`Lv.${G.level}  江湖小虾  ·  逍遥门`,30,67,13,'#c8b28d');
+ panel(vw-235,14,221,72);txt(`银两  ${G.gold.toLocaleString()}`,vw-218,38,15,'#ecd4a2');txt(`经验  ${G.exp}/${G.next}`,vw-218,65,13,'#c8b28d');
+ // player and pet
+ drawChar(G.heroX-G.cam,G.heroY,1.0,'hero',G.walk); drawName(G.heroX-G.cam,G.heroY,'江湖小虾',G.hp,G.maxhp);
+ drawPet(445-G.cam,510,0.72);txt('灵狐',445-G.cam,450,13,'#ead8b2','center');
+ // NPCs
+ drawChar(620-G.cam,465,.9,'npc',false);txt('任务使者',620-G.cam,355,14,'#f1d49b','center');
+ drawChar(930-G.cam,470,.9,'npc2',false);txt('杂货商',930-G.cam,360,14,'#f1d49b','center');
+ // interaction
+ panel(vw-340,vh-120,325,100);txt('古道尽头',vw-320,vh-90,16,'#f0d39a');txt('点击「进入战斗」开始野外遇怪',vw-320,vh-60,13,'#c5b18f');
+ button(vw-180,vh-54,145,40,'进入战斗','',()=>startBattle());
+ // left menu
+ panel(14,104,118,258);['任务','队伍','好友','帮派','背包','系统'].forEach((s,i)=>{button(24,114+i*39,98,31,s,'',()=>{G.msg=s+'功能将在后续版本开放';})});
+ // chat
+ panel(14,vh-108,440,92,.88);G.log.slice(-3).forEach((s,i)=>txt(s,25,vh-90+i*22,12,s.includes('[系统]')?'#dfc66d':'#b9d5e0'));txt('点击场景移动 · Enter进入战斗',470,vh-28,12,'#b7a98d');
 }
+function drawChar(px,py,s,kind,walk){ctx.save();ctx.translate(px,py);ctx.scale(s*(G.dir<0?-1:1),s);let bob=walk?Math.sin(Date.now()/100)*3:Math.sin(Date.now()/600)*1.5;
+ ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,8,37,10,0,0,7);ctx.fill();ctx.translate(0,bob);
+ let robe=kind==='hero'?'#b98547':kind==='npc2'?'#5b7890':'#6e4254';
+ ctx.fillStyle=robe;ctx.beginPath();ctx.moveTo(-25,-76);ctx.lineTo(-42,20);ctx.quadraticCurveTo(0,35,42,20);ctx.lineTo(25,-76);ctx.closePath();ctx.fill();
+ ctx.fillStyle=kind==='hero'?'#ead7ad':'#d5b58d';ctx.beginPath();ctx.arc(0,-92,25,0,7);ctx.fill();
+ ctx.fillStyle='#1d1b20';ctx.beginPath();ctx.arc(0,-105,29,Math.PI,0);ctx.lineTo(27,-90);ctx.quadraticCurveTo(10,-105,0,-99);ctx.quadraticCurveTo(-12,-105,-27,-90);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#30221e';ctx.fillRect(-10,-94,5,3);ctx.fillRect(5,-94,5,3);
+ ctx.fillStyle='#9c6933';ctx.fillRect(-31,-10,62,8);
+ ctx.fillStyle='#292630';ctx.fillRect(-28,20,22,15);ctx.fillRect(6,20,22,15);
+ if(kind==='hero'){ctx.strokeStyle='#d9e8ed';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(34,-40);ctx.lineTo(72,-112);ctx.stroke();ctx.strokeStyle='#d1a04e';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(24,-35);ctx.lineTo(50,-23);ctx.stroke()}
+ ctx.restore()}
+function drawPet(px,py,s){ctx.save();ctx.translate(px,py);ctx.scale(s,s);ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(0,10,30,8,0,0,7);ctx.fill();ctx.fillStyle='#dbeaf0';ctx.beginPath();ctx.ellipse(0,-35,31,25,0,0,7);ctx.fill();ctx.fillStyle='#a9cbd6';ctx.beginPath();ctx.moveTo(-25,-47);ctx.lineTo(-50,-86);ctx.lineTo(-10,-66);ctx.moveTo(25,-47);ctx.lineTo(50,-86);ctx.lineTo(10,-66);ctx.fill();ctx.fillStyle='#263443';ctx.fillRect(-12,-37,5,4);ctx.fillRect(7,-37,5,4);ctx.fillStyle='#caa0aa';ctx.beginPath();ctx.ellipse(0,-25,9,5,0,0,7);ctx.fill();ctx.restore()}
+function drawName(px,py,n,hp,max){txt(n,px,py-136,14,'#f2dfb8','center');bar(px-48,py-125,96,7,hp,max,'#d75b4f','#8c2625')}
 
-function sprite(px,py,scale,kind='hero',state='idle',frame=0,flip=false){
- x.save();x.translate(px,py);if(flip)x.scale(-1,1);x.scale(scale,scale);
- let bob=state==='idle'?Math.sin(anim/500+frame)*2:0;
- if(state==='hit')x.rotate(Math.sin(anim/70)*.06);
- // shadow
- x.fillStyle='rgba(0,0,0,.28)';x.beginPath();x.ellipse(0,4,42,12,0,0,7);x.fill();
- x.translate(0,bob);
- if(kind==='hero'){
-   // cape
-   x.fillStyle='#8c2927';x.beginPath();x.moveTo(-26,-95);x.quadraticCurveTo(-58,-20,-34,18);x.lineTo(12,10);x.lineTo(22,-84);x.closePath();x.fill();
-   // robe
-   x.fillStyle='#d8b878';x.beginPath();x.moveTo(-26,-75);x.lineTo(-43,20);x.quadraticCurveTo(0,38,43,20);x.lineTo(25,-75);x.closePath();x.fill();
-   x.fillStyle='#53352b';x.beginPath();x.moveTo(-16,-68);x.lineTo(0,25);x.lineTo(16,-68);x.closePath();x.fill();
-   // sleeves
-   x.fillStyle='#9d302a';x.beginPath();x.roundRect(-48,-68,24,72,10);x.fill();x.beginPath();x.roundRect(24,-68,24,72,10);x.fill();
-   // head
-   x.fillStyle='#e7b58f';x.beginPath();x.arc(0,-92,27,0,7);x.fill();
-   x.fillStyle='#171821';x.beginPath();x.arc(0,-104,29,Math.PI,0);x.lineTo(27,-91);x.quadraticCurveTo(12,-108,0,-101);x.quadraticCurveTo(-12,-108,-27,-91);x.closePath();x.fill();
-   // hair tail
-   x.fillStyle='#171821';x.beginPath();x.moveTo(23,-103);x.quadraticCurveTo(62,-74,34,-38);x.lineTo(18,-52);x.closePath();x.fill();
-   // eyes
-   x.fillStyle='#34231e';x.fillRect(-11,-93,6,3);x.fillRect(5,-93,6,3);
-   // belt
-   x.fillStyle='#a36c32';x.fillRect(-34,-10,68,9);
-   // boots
-   x.fillStyle='#2c2730';x.roundRect(-31,18,25,15,5);x.fill();x.roundRect(6,18,25,15,5);x.fill();
-   // sword
-   x.strokeStyle='#dbe5ee';x.lineWidth=5;x.beginPath();x.moveTo(42,-44);x.lineTo(78,-110);x.stroke();x.strokeStyle='#d5a34c';x.lineWidth=4;x.beginPath();x.moveTo(30,-37);x.lineTo(54,-25);x.stroke();
- }else if(kind==='pet'){
-   x.fillStyle='#d8e8ee';x.beginPath();x.ellipse(0,-35,35,29,0,0,7);x.fill();
-   x.fillStyle='#a6c7d5';x.beginPath();x.moveTo(-28,-48);x.lineTo(-52,-92);x.lineTo(-13,-69);x.closePath();x.fill();x.beginPath();x.moveTo(28,-48);x.lineTo(52,-92);x.lineTo(13,-69);x.closePath();x.fill();
-   x.fillStyle='#263345';x.beginPath();x.arc(-11,-37,4,0,7);x.arc(11,-37,4,0,7);x.fill();
-   x.fillStyle='#e7c2c7';x.beginPath();x.ellipse(0,-24,10,7,0,0,7);x.fill();
-   x.fillStyle='#b9d7df';x.beginPath();x.ellipse(0,10,29,23,0,0,7);x.fill();
-   x.fillStyle='#9bb7c1';x.beginPath();x.moveTo(-28,10);x.quadraticCurveTo(-62,28,-30,38);x.quadraticCurveTo(-5,30,-15,12);x.fill();
- }else{
-   x.fillStyle=kind==='bandit'?'#493c55':'#45605a';x.beginPath();x.moveTo(-24,-70);x.lineTo(-43,20);x.quadraticCurveTo(0,36,43,20);x.lineTo(25,-70);x.closePath();x.fill();
-   x.fillStyle='#d69d78';x.beginPath();x.arc(0,-88,25,0,7);x.fill();
-   x.fillStyle='#1e2029';x.beginPath();x.arc(0,-98,28,Math.PI,0);x.fill();
-   x.fillStyle='#e5d6a1';x.fillRect(-31,-68,62,8);
-   x.fillStyle='#28242d';x.fillRect(-30,20,24,16);x.fillRect(6,20,24,16);
-   if(kind==='monster'){x.fillStyle='#8b3e4b';x.beginPath();x.moveTo(-28,-110);x.lineTo(-42,-140);x.lineTo(-10,-118);x.moveTo(28,-110);x.lineTo(42,-140);x.lineTo(10,-118);x.fill()}
- }
- x.restore();
-}
-
-function nameplate(px,py,n,hp,max){
- text(n,px,py-135,16,'#f6e5c4','center');bar(px-48,py-123,96,7,hp,max,'#d75a4f','#8e2524')
-}
-
-function drawWorld(){
- worldBg();
- // shrine
- panel(28,28,270,86);text('星火西游 · 云州古道',48,56,22,'#f1d79b');text('Lv.'+S.level+'  '+hero.name+' · '+hero.cls,48,88,14,'#cbb58d');
- // player
- sprite(S.heroX,520,1.12,'hero','idle',0);nameplate(S.heroX,520,hero.name,S.hp,S.maxhp);
- sprite(520,570,.7,'pet','idle');text('灵狐',520,510,14,'#f0e2c6','center');
- // NPC
- sprite(760,520,.98,'bandit','idle');text('巡路校尉',760,380,15,'#f2d7ac','center');
- panel(650,410,220,58);text('「前方妖雾渐浓，慎行。」',760,439,15,'#ead9bd','center');
- // interaction cards
- panel(900,585,330,96);text('点击古道尽头进入战斗',920,610,16,'#f1d79b');text('金钱 '+S.gold+'  ·  灵狐 '+S.petHp+' HP',920,644,14,'#cbb58d');
- drawMobileControls();
-}
-function drawMobileControls(){
- panel(25,600,155,75);text('◀',62,637,34,'#e6d2ac','center');text('▶',143,637,34,'#e6d2ac','center');
-}
-
-function battleBg(){
- x.fillStyle=grad(0,H,'#151727','#4c3030');x.fillRect(0,0,W,H);
- for(let i=0;i<5;i++)mountain(100+i*300,520,1,'#29283a');
- x.fillStyle='#44362e';x.fillRect(0,510,W,210);
- x.fillStyle='#755642';x.fillRect(0,555,W,165);
- for(let i=0;i<10;i++){x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.ellipse(i*150+40,650,55,13,0,0,7);x.fill()}
- // moon
- x.fillStyle='#e6d6a8';x.beginPath();x.arc(1080,125,52,0,7);x.fill();
-}
-const enemies=[['赤羽妖姬','monster'],['山魈头领','bandit'],['雾灵','monster']];
+function startBattle(){G.scene='battle';G.turn=1;G.enemy=[{n:'山妖',hp:760,max:760,type:0},{n:'小妖',hp:520,max:520,type:1},{n:'野狼',hp:430,max:430,type:2}];G.msg='妖物拦路！请选择行动。'}
+function drawEnemy(px,py,s,type,dead){ctx.save();ctx.translate(px,py);ctx.scale(s, s);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,8,38,10,0,0,7);ctx.fill();ctx.fillStyle=type===0?'#3e5b62':type===1?'#704047':'#59605b';ctx.beginPath();ctx.moveTo(-28,-70);ctx.lineTo(-43,20);ctx.quadraticCurveTo(0,34,43,20);ctx.lineTo(28,-70);ctx.closePath();ctx.fill();ctx.fillStyle=type===2?'#6d5949':'#aa7056';ctx.beginPath();ctx.arc(0,-88,24,0,7);ctx.fill();ctx.fillStyle='#1d2025';ctx.beginPath();ctx.arc(0,-99,27,Math.PI,0);ctx.fill();if(type===0){ctx.fillStyle='#8f4245';ctx.beginPath();ctx.moveTo(-18,-108);ctx.lineTo(-42,-136);ctx.lineTo(-9,-116);ctx.moveTo(18,-108);ctx.lineTo(42,-136);ctx.lineTo(9,-116);ctx.fill()}ctx.fillStyle='#28242c';ctx.fillRect(-28,20,22,15);ctx.fillRect(6,20,22,15);if(dead){ctx.globalAlpha=.28;ctx.rotate(-.7)}ctx.restore()}
 function drawBattle(){
- battleBg();
- panel(25,22,1230,75);text('云州古道 · 妖雾战',48,50,22,'#f1d79b');text('第 '+(S.turn+1)+' 回合',1215,50,17,'#cbb58d','right');
- // turn order
- panel(430,105,420,46);text('行动序列  玄曜 → 灵狐 → 赤羽妖姬 → 山魈头领',640,128,14,'#dfcba7','center');
- sprite(280,540,1.22,'hero',S.turn===0?'idle':'idle');nameplate(280,540,hero.name,S.hp,S.maxhp);
- sprite(430,575,.78,'pet');bar(385,482,90,7,S.petHp,520,'#7bd6d2','#2b7e87');text('灵狐',430,468,14,'#f0e2c6','center');
- [820,980,1130].forEach((px,i)=>{let hp=S.enemyHp[i];sprite(px,520,.9,enemies[i][1],hp<=0?'hit':'idle');nameplate(px,520,enemies[i][0],hp,420)});
- // bottom command
- panel(25,590,1230,108);
- text('玄曜',52,616,18,'#f1d79b');bar(120,604,210,14,S.hp,S.maxhp,'#e85b53','#9d2525');text(S.hp+'/'+S.maxhp,335,612,13,'#e8d8bd','right');
- bar(120,632,210,11,S.mp,S.maxmp,'#62a8e5','#315c9a');text(S.mp+'/'+S.maxmp,335,638,13,'#e8d8bd','right');
- const skills=[['破军斩','普通攻击'],['炎龙诀','火焰法术'],['回春术','恢复生命'],['御剑阵','群体伤害']];
- skills.forEach((q,i)=>{let bx=390+i*205; x.fillStyle='rgba(84,51,34,.95)';rr(x,bx,604,180,72,12);x.strokeStyle='#a98755';x.lineWidth=1;strokeRR(bx,604,180,72,12);text(q[0],bx+90,627,18,'#f4dfb2','center');text(q[1],bx+90,653,12,'#bfae8e','center')});
+ let g=ctx.createLinearGradient(0,0,0,vh);g.addColorStop(0,'#151a2a');g.addColorStop(.7,'#55423b');g.addColorStop(1,'#201813');ctx.fillStyle=g;ctx.fillRect(0,0,vw,vh);
+ for(let i=0;i<5;i++)mountain(120+i*270,480,1,'#2f303d');ctx.fillStyle='#4d3b2e';ctx.fillRect(0,490,vw,vh-490);
+ panel(14,14,vw-28,64);txt('云州古道 · 野外战斗',32,38,21,'#efd39a');txt(`第 ${G.turn} 回合`,vw-32,38,16,'#c7b18c','right');
+ // characters
+ drawChar(260,470,1.1,'hero',false);drawName(260,470,'江湖小虾',G.hp,G.maxhp);drawPet(410,505,.78);
+ G.enemy.forEach((e,i)=>{let px=760+i*165;drawEnemy(px,465,.95,e.type,e.hp<=0);txt(e.n,px,330,14,'#e9d4a9','center');bar(px-45,342,90,7,e.hp,e.max,'#d55c51','#852727')});
+ // bottom
+ panel(14,vh-155,vw-28,140,.95);txt('江湖小虾',30,vh-132,16,'#f0d29a');bar(115,vh-142,190,12,G.hp,G.maxhp,'#e45d53','#982625');txt(`${G.hp}/${G.maxhp}`,315,vh-136,12,'#cbb693');bar(115,vh-118,190,10,G.mp,G.maxmp,'#66a9df','#315b95');txt(`${G.mp}/${G.maxmp}`,315,vh-113,12,'#cbb693');
+ const names=[['攻击','普通攻击'],['法术','技能/法术'],['道具','恢复/消耗品'],['防御','减少伤害'],['自动','自动行动']];let bw=Math.min(150,(vw-360)/5),sx=350;
+ names.forEach((a,i)=>button(sx+i*(bw+8),vh-140,bw,58,a[0],a[1],()=>skill(i)));
+ txt(G.msg,30,vh-82,13,'#c8b795');
 }
-function attack(i){
- if(S.enemyHp.every(v=>v<=0))return;
- if(i===0){S.enemyHp[0]=Math.max(0,S.enemyHp[0]-125);S.mp=Math.min(S.maxmp,S.mp+8);effect(820,450,'-125','#f0d36e')}
- if(i===1&&S.mp>=45){S.mp-=45;S.enemyHp[0]=Math.max(0,S.enemyHp[0]-190);effect(820,450,'-190','#ff7a4d')}
- if(i===2){S.hp=Math.min(S.maxhp,S.hp+170);effect(280,420,'+170','#78dca0')}
- if(i===3&&S.mp>=80){S.mp-=80;S.enemyHp=S.enemyHp.map(v=>Math.max(0,v-100));effect(980,400,'-100','#9e8cff')}
- S.turn++;
- setTimeout(()=>enemyTurn(),350);
+function skill(i){
+ if(G.scene!=='battle'||G.enemy.every(e=>e.hp<=0))return;
+ if(i===0){G.enemy[0].hp=Math.max(0,G.enemy[0].hp-150);G.float.push({x:760,y:300,t:'-150',c:'#f0d36e'});G.mp=Math.min(G.maxmp,G.mp+12)}
+ if(i===1&&G.mp>=80){G.mp-=80;G.enemy.forEach((e,j)=>e.hp=Math.max(0,e.hp-(j===0?220:120)));G.float.push({x:920,y:300,t:'炎龙诀',c:'#ff8a4d'})}
+ if(i===2){let heal=Math.min(240,G.maxhp-G.hp);G.hp+=heal;G.mp=Math.min(G.maxmp,G.mp+20);G.float.push({x:260,y:300,t:'+'+heal,c:'#78dca0'})}
+ if(i===3){G.hp=Math.min(G.maxhp,G.hp+70);G.msg='玄曜摆出防御姿态。'}
+ if(i===4){G.enemy[0].hp=Math.max(0,G.enemy[0].hp-120);G.msg='自动战斗：发动攻击。'}
+ G.turn++;
+ if(G.enemy.every(e=>e.hp<=0)){G.gold+=800;G.exp+=5200;G.msg='战斗胜利！获得 800 银两、5200 经验。';if(G.exp>=G.next){G.level++;G.exp-=G.next;G.next=Math.floor(G.next*1.15);G.maxhp+=120;G.maxmp+=60;G.hp=G.maxhp;G.mp=G.maxmp}return}
+ setTimeout(()=>enemyAct(),350)
 }
-function enemyTurn(){
- if(S.enemyHp.every(v=>v<=0)){S.msg='战斗胜利！获得 260 金、72 经验。';S.gold+=260;S.exp+=72;if(S.exp>=100){S.level++;S.exp-=100;S.maxhp+=80;S.hp=S.maxhp}return}
- let dmg=25+Math.floor(Math.random()*38);S.hp=Math.max(0,S.hp-dmg);effect(280,430,'-'+dmg,'#ff8b76');
- if(S.hp<=0){S.hp=S.maxhp;S.mp=S.maxmp;S.msg='玄曜倒下后被灵狐拖回安全处……';S.scene='world'}
-}
-function effect(px,py,t,col){floaters.push({x:px,y:py,t,col,life:1});for(let i=0;i<14;i++)particles.push({x:px,y:py,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*5,life:1,col})}
-
-function draw(){
- x.clearRect(0,0,W,H);
- if(S.scene==='world')drawWorld();else drawBattle();
- // particles
- particles.forEach(p=>{x.globalAlpha=Math.max(0,p.life);x.fillStyle=p.col;x.beginPath();x.arc(p.x,p.y,3+p.life*3,0,7);x.fill();p.x+=p.vx;p.y+=p.vy;p.life-=.035});particles=particles.filter(p=>p.life>0);x.globalAlpha=1;
- floaters.forEach(f=>{x.globalAlpha=f.life;text(f.t,f.x,f.y,24,f.col,'center');f.y-=.7;f.life-=.025});floaters=floaters.filter(f=>f.life>0);x.globalAlpha=1;
- if(S.msg){x.fillStyle='rgba(20,14,12,.7)';rr(x,350,520,580,46,20);text(S.msg,640,543,15,'#ead7b3','center')}
-}
-function loop(t){anim=t;draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
-
-c.addEventListener('pointerdown',e=>{
- const r=c.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width,py=(e.clientY-r.top)*H/r.height;
- if(S.scene==='world'){
-   if(px>870&&py>540){S.scene='battle';S.msg='妖物拦路！选择技能迎战。';}
-   else if(px<210&&py>580){S.heroX=Math.max(100,S.heroX-55)}
-   else if(px<210&&py>580){S.heroX=Math.min(700,S.heroX+55)}
-   else if(px<620){S.heroX=Math.min(700,S.heroX+35)}
+function enemyAct(){if(G.scene!=='battle')return;let dmg=35+Math.floor(Math.random()*55);G.hp=Math.max(0,G.hp-dmg);G.float.push({x:260,y:300,t:'-'+dmg,c:'#ff8d78'});if(G.hp<=0){G.hp=G.maxhp;G.mp=G.maxmp;G.scene='town';G.msg='你被妖物击倒，回到了长安城。'}}
+function save(){try{localStorage.setItem('xinghuo-save',JSON.stringify(G));G.msg='游戏进度已保存。'}catch(e){G.msg='当前浏览器未允许本地存档。'}}
+function load(){try{let s=JSON.parse(localStorage.getItem('xinghuo-save'));if(s)Object.assign(G,s);G.msg='已读取本地存档。'}catch(e){G.msg='没有可读取的存档。'}}
+function draw(){ctx.clearRect(0,0,vw,vh);if(G.scene==='town')drawTown();else drawBattle();G.float.forEach(f=>{txt(f.t,f.x,f.y,22,f.c,'center');f.y-=.7});G.float=G.float.filter(f=>f.y>160);requestAnimationFrame(draw)}
+C.addEventListener('pointerdown',e=>{
+ let r=C.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+ if(G.scene==='town'){
+   if(px>vw-205&&py>vh-75){startBattle();return}
+   if(px<160&&py>vh-85){G.heroX=Math.max(90,G.heroX-70);G.dir=-1}
+   else if(px<300&&py>vh-85){G.heroX=Math.min(620,G.heroX+70);G.dir=1}
+   else if(px>vw*.72&&py>300){startBattle()}
+   else if(px<vw*.62){G.heroX=Math.max(90,Math.min(620,px+G.cam));G.dir=px+G.cam>G.heroX?1:-1}
  }else{
-   if(py>595){
-     if(px>390&&px<570)attack(0);
-     else if(px>=570&&px<775)attack(1);
-     else if(px>=775&&px<980)attack(2);
-     else if(px>=980)attack(3);
-   }
+   const bw=Math.min(150,(vw-360)/5),sx=350;
+   for(let i=0;i<5;i++)if(hit(px,py,[sx+i*(bw+8),vh-140,bw,58])){skill(i);return}
  }
 });
-addEventListener('keydown',e=>{
- if(S.scene==='world'&&(e.key==='ArrowRight'||e.key==='d'))S.heroX=Math.min(700,S.heroX+30);
- if(S.scene==='world'&&(e.key==='ArrowLeft'||e.key==='a'))S.heroX=Math.max(80,S.heroX-30);
- if(e.key==='Enter')S.scene='battle';
- if(S.scene==='battle'&&['1','2','3','4'].includes(e.key))attack(+e.key-1);
-});
+setInterval(()=>{if(G.scene==='town'){if(keys['arrowleft']||keys['a']){G.heroX=Math.max(80,G.heroX-3);G.dir=-1;G.walk=true}else if(keys['arrowright']||keys['d']){G.heroX=Math.min(650,G.heroX+3);G.dir=1;G.walk=true}else G.walk=false}},16);
+addEventListener('beforeunload',save);
+load();
+requestAnimationFrame(draw);
 </script>
-</body></html>
+</body>
+</html>
