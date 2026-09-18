@@ -1,14 +1,10 @@
-# 星火勇者：终焉之门（最终版）
+# 星火西游 · 第一阶段
 
-将 `index.html` 上传到 GitHub Pages 仓库根目录。
+GitHub Pages 直接部署。
 
-玩法：
-- iPhone 左下摇杆移动
-- 靠近 NPC / 宝箱 / 敌人后点互动
-- 村庄 → 森林 → 深渊城堡
-- 铁匠任务、装备强化、天赋、宝箱、药水
-- 普通怪、精英怪、最终 Boss
-- Boss 二阶段
-- 回合制普攻 / 烈焰斩 / 防御 / 星爆
-- 等级、经验、金币、装备、任务、自动存档
-- Three.js 通过 CDN 加载，运行时需要联网
+1. 把 `index.html` 上传到仓库根目录。
+2. Settings → Pages → Deploy from a branch。
+3. Branch 选择 `main`，目录选择 `/ (root)`。
+4. 用 Safari 打开 Pages 地址。
+
+运行需要联网加载 Three.js CDN。
