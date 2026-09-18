@@ -2,164 +2,193 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>星火西游 · 第一阶段</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>星火西游 · 横版2D</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10131a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-#game{position:fixed;inset:0}
-canvas{display:block}
-#hud{position:fixed;inset:0;pointer-events:none}
-.top{display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 10px 0}
-.card{background:rgba(12,16,25,.78);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(8px);border-radius:14px;padding:8px 11px;box-shadow:0 8px 30px #0005}
-.bar{width:130px;height:8px;background:#303642;border-radius:9px;overflow:hidden;margin-top:5px}
-.fill{height:100%;width:100%;background:#e84d4d}
-#mpFill{background:#4b88e8}
-#zone{margin-left:auto}
-#notice{position:absolute;top:92px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:18px;background:#080b12cc;opacity:0;transition:.25s}
-#panel{position:absolute;right:10px;top:92px;width:min(310px,48vw);max-height:70vh;overflow:auto;display:none}
-h3{margin:0 0 8px;font-size:17px}.small{font-size:12px;color:#b9c0ce}.row{display:flex;justify-content:space-between;gap:8px;margin:7px 0}
-button{border:0;border-radius:12px;background:#263247;color:#fff;padding:10px 12px;font-size:14px;font-weight:700;touch-action:manipulation}
-button:active{transform:scale(.97)} button.primary{background:#b66b28} button.good{background:#2b7958}
-#controls{position:absolute;inset:auto 0 0 0;height:190px;pointer-events:none}
-#stick{position:absolute;left:18px;bottom:22px;width:132px;height:132px;border-radius:50%;background:#ffffff18;border:1px solid #fff2;pointer-events:auto}
-#knob{position:absolute;width:54px;height:54px;left:39px;top:39px;border-radius:50%;background:#ffffff3a;border:1px solid #fff5}
-#actions{position:absolute;right:12px;bottom:18px;display:grid;grid-template-columns:repeat(2,72px);gap:8px;pointer-events:auto}
-#actions button{height:54px;padding:4px;font-size:12px}
-#menu{position:absolute;left:10px;bottom:20px;display:flex;gap:7px;pointer-events:auto}
-#battle{position:absolute;inset:0;background:linear-gradient(#080b1288,#080b12dd);display:none;pointer-events:auto}
-#battleBox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(900px,94vw);max-height:92vh;overflow:auto}
-.battleArena{height:310px;border-radius:20px;background:radial-gradient(circle at 50% 60%,#384057,#121622 68%);border:1px solid #ffffff18;position:relative;overflow:hidden}
-.unit{position:absolute;bottom:40px;text-align:center}.heroU{left:18%}.enemyU{right:18%}
-.emoji{font-size:74px;filter:drop-shadow(0 10px 8px #0008)} .hp{height:8px;width:130px;background:#303642;border-radius:9px;overflow:hidden;margin:5px auto}.hp i{display:block;height:100%;background:#e65a5a}
-.enemyU .hp i{background:#db9b3f}
-#battleLog{margin-top:8px;min-height:48px}.battleBtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-#start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#26344d,#0b0e15 70%);z-index:5}
-.startbox{text-align:center;width:min(560px,90vw)}.startbox h1{font-size:40px;margin:0 0 6px}.startbox p{color:#c3cad6;line-height:1.6}
-#toast{position:absolute;left:50%;bottom:210px;transform:translateX(-50%);background:#000b;padding:10px 15px;border-radius:16px;display:none}
-@media(max-width:700px){#panel{width:70vw}.battleArena{height:260px}.emoji{font-size:58px}.heroU{left:10%}.enemyU{right:10%}}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;color:#f7ead0;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+#app{position:relative;width:100vw;height:100vh;max-width:177.78vh;max-height:56.25vw;overflow:hidden;background:#20160f}
+canvas{display:block;width:100%;height:100%;image-rendering:auto}
+#tip{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:11px;color:#d9c6a2;opacity:.75;pointer-events:none}
 </style>
 </head>
 <body>
-<div id="game"></div>
-<div id="start"><div class="startbox"><h1>星火西游</h1><div class="small">第一阶段 · 长安与桃源野外</div><p>原创中国仙侠回合制 RPG。自由跑图、遇敌、宠物、装备与回合战斗。</p><button class="primary" id="startBtn">进入长安</button></div></div>
-<div id="hud">
- <div class="top">
-  <div class="card"><b id="name">星火</b><div class="small">Lv.<span id="lv">1</span> · <span id="cls">烈阳宫</span></div></div>
-  <div class="card"><span>HP <b id="hp">100</b>/<span id="hpMax">100</span></span><div class="bar"><div class="fill" id="hpFill"></div></div><span>MP <b id="mp">60</b>/<span id="mpMax">60</span></span><div class="bar"><div class="fill" id="mpFill"></div></div></div>
-  <div class="card">💰 <b id="gold">300</b></div>
-  <div class="card" id="zone">长安城</div>
- </div>
- <div id="notice"></div>
- <div id="toast"></div>
- <div id="panel" class="card"></div>
- <div id="menu">
-  <button onclick="showPanel('char')">角色</button><button onclick="showPanel('bag')">背包</button><button onclick="showPanel('pet')">宠物</button><button onclick="saveGame()">保存</button>
- </div>
- <div id="controls">
-  <div id="stick"><div id="knob"></div></div>
-  <div id="actions">
-   <button onclick="interact()">交互</button><button onclick="battleNearest()">遇敌</button>
-   <button onclick="heal()">药品</button><button onclick="showPanel('quest')">任务</button>
-  </div>
- </div>
-</div>
-<div id="battle"><div id="battleBox" class="card">
- <h3 id="battleTitle">战斗</h3>
- <div class="battleArena">
-  <div class="unit heroU"><div class="emoji">🧑‍🚀</div><b>星火</b><div class="hp"><i id="bHeroHp"></i></div></div>
-  <div class="unit enemyU"><div class="emoji" id="enemyEmoji">🐺</div><b id="enemyName">野狼</b><div class="hp"><i id="bEnemyHp"></i></div></div>
- </div>
- <div id="battleLog" class="card small">选择行动。</div>
- <div class="battleBtns">
-  <button class="primary" onclick="playerAction('attack')">普通攻击</button>
-  <button onclick="playerAction('skill')">烈焰斩 · 15MP</button>
-  <button onclick="playerAction('guard')">防御</button>
-  <button onclick="playerAction('pet')">宠物攻击</button>
-  <button onclick="playerAction('item')">回复药</button>
-  <button onclick="flee()">逃跑</button>
- </div>
-</div></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<div id="app"><canvas id="game"></canvas><div id="tip">横屏体验 · 点击角色附近可移动 · 战斗中选择技能</div></div>
 <script>
-const S={lv:1,xp:0,gold:300,hp:100,hpMax:100,mp:60,mpMax:60,atk:18,def:8,inventory:["回复药","回复药"],pet:{name:"灵狐",hp:55,atk:12,skill:"连击"},quest:0,kills:0,zone:"长安城"};
-let scene,camera,renderer,clock,player,dir={x:0,z:0},keys={},objects=[],battle=null,canMove=false,joystick={on:false};
-const $=id=>document.getElementById(id);
-function saveGame(){localStorage.setItem("xinghuo_xiyou_v1",JSON.stringify(S));notice("已保存到本机");}
-function loadGame(){try{Object.assign(S,JSON.parse(localStorage.getItem("xinghuo_xiyou_v1")||"{}"));}catch(e){}}
-function notice(t){$("notice").textContent=t;$("notice").style.opacity=1;clearTimeout(window.nt);window.nt=setTimeout(()=>$("notice").style.opacity=0,1800)}
-function toast(t){$("toast").textContent=t;$("toast").style.display="block";clearTimeout(window.tt);window.tt=setTimeout(()=>$("toast").style.display="none",1600)}
-function hud(){["lv","gold","hp","mp"].forEach(k=>$(k).textContent=S[k]);$("hpMax").textContent=S.hpMax;$("mpMax").textContent=S.mpMax;$("hpFill").style.width=(S.hp/S.hpMax*100)+"%";$("mpFill").style.width=(S.mp/S.mpMax*100)+"%";$("zone").textContent=S.zone}
-function mat(c){return new THREE.MeshStandardMaterial({color:c,roughness:.8})}
-function box(c,s){let m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.castShadow=m.receiveShadow=true;return m}
-function makeWorld(){
- scene=new THREE.Scene();scene.background=new THREE.Color(S.zone==="长安城"?0x9bc8e8:0x9ebd78);
- camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,500);
- renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;$("game").appendChild(renderer.domElement);
- scene.add(new THREE.HemisphereLight(0xddeeff,0x445533,2));let sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(30,50,20);sun.castShadow=true;scene.add(sun);
- let ground=box(S.zone==="长安城"?0xc8a96b:0x5c8b4b,[100,.4,100]);ground.position.y=-.25;scene.add(ground);
- player=new THREE.Group();let body=box(0x8b3a28,[1.1,1.5,.7]);body.position.y=1.25;player.add(body);let head=new THREE.Mesh(new THREE.SphereGeometry(.48,16,12),mat(0xf0bd8d));head.position.y=2.35;player.add(head);let cape=box(0x263a75,[1.35,1.6,.18]);cape.position.set(0,1.25,-.45);player.add(cape);let sword=box(0xe9e9f2,[.14,1.4,.14]);sword.position.set(.75,1.35,0);sword.rotation.z=-.35;player.add(sword);player.position.set(0,0,8);scene.add(player);
- addTown(); addEnemy(10,-10,"🐺","野狼",45,10);addEnemy(-15,-15,"🦊","狐妖",65,14);addEnemy(18,14,"👹","山魈",90,18);addEnemy(-18,16,"🐍","青蛇",55,13);
- canMove=true;hud();
+const c=document.getElementById('game'),x=c.getContext('2d');
+let W=1280,H=720,D=devicePixelRatio||1;
+function resize(){let r=Math.min(innerWidth/1280,innerHeight/720);W=Math.round(innerWidth/r);H=Math.round(innerHeight/r);c.width=innerWidth*D;c.height=innerHeight*D;x.setTransform(c.width/innerWidth,0,0,c.height/innerHeight,0,0); x.scale(innerWidth/W,innerHeight/H)}
+addEventListener('resize',resize); resize();
+
+const S={scene:'world',gold:1280,level:12,exp:72,hp:860,maxhp:860,mp:310,maxmp:310,petHp:520,enemyHp:[420,330,280],cam:0,heroX:380,move:0,turn:0,msg:'云州城外，妖气从古道尽头升起。',saveKey:'xinghuo2d'};
+const hero={name:'玄曜',cls:'焰剑客',hair:0};
+let particles=[], floaters=[], last=0, anim=0;
+
+function rr(ctx,a,b,w,h,r){ctx.beginPath();ctx.roundRect(a,b,w,h,r);ctx.fill()}
+function strokeRR(a,b,w,h,r){x.beginPath();x.roundRect(a,b,w,h,r);x.stroke()}
+function text(t,a,b,size=20,fill='#fff',align='left'){x.font=`${size}px "PingFang SC","Microsoft YaHei",sans-serif`;x.fillStyle=fill;x.textAlign=align;x.textBaseline='middle';x.fillText(t,a,b)}
+function grad(a,b,c1,c2){let g=x.createLinearGradient(0,a,0,b);g.addColorStop(0,c1);g.addColorStop(1,c2);return g}
+function panel(a,b,w,h){x.fillStyle='rgba(30,18,14,.88)';rr(x,a,b,w,h,14);x.strokeStyle='#b9975b';x.lineWidth=2;strokeRR(a,b,w,h,14)}
+function bar(a,b,w,h,val,max,c1,c2){x.fillStyle='rgba(0,0,0,.55)';rr(x,a,b,w,h,h/2);x.fillStyle=grad(b,b+h,c1,c2);rr(x,a,b,Math.max(3,w*val/max),h,h/2)}
+
+function cloud(cx,cy,s){x.fillStyle='rgba(245,239,215,.16)';for(let i=0;i<5;i++){x.beginPath();x.arc(cx+(i-2)*38*s,cy+(i%2)*8*s,28*s+(i%2)*8*s,0,7);x.fill()}}
+function tree(px,py,s){x.fillStyle='#2e241b';x.fillRect(px-8*s,py,16*s,100*s);x.fillStyle='#263d2e';[[0,-35,46],[35,-10,35],[-32,-8,34],[5,8,40]].forEach(q=>{x.beginPath();x.arc(px+q[0]*s,py+q[1]*s,q[2]*s,0,7);x.fill()})}
+function mountain(px,base,s,col){x.fillStyle=col;x.beginPath();x.moveTo(px-250*s,base);x.lineTo(px-80*s,base-170*s);x.lineTo(px+10*s,base-60*s);x.lineTo(px+110*s,base-210*s);x.lineTo(px+260*s,base);x.closePath();x.fill()}
+function worldBg(){
+ x.fillStyle=grad(0,H,'#171c32','#c18c67');x.fillRect(0,0,W,H);
+ cloud(260,145,1);cloud(890,110,.8);
+ mountain(240,530,1.4,'#343444');mountain(720,535,1.2,'#454152');mountain(1120,530,1.0,'#302f3d');
+ x.fillStyle='#655544';x.fillRect(0,510,W,210);
+ x.fillStyle='#80684b';x.beginPath();x.moveTo(0,590);x.bezierCurveTo(300,530,530,650,760,570);x.bezierCurveTo(980,500,1120,600,1280,540);x.lineTo(1280,720);x.lineTo(0,720);x.fill();
+ for(let i=0;i<7;i++)tree(70+i*210,455+(i%2)*20,.75+(i%3)*.12);
+ // distant gate
+ x.fillStyle='#5b2f24';x.fillRect(1010,300,30,220);x.fillRect(1180,300,30,220);x.fillRect(1000,275,220,35);
+ x.fillStyle='#bda46b';text('云州古道',1110,292,22,'#f3d9a0','center');
+ // road stones
+ x.fillStyle='rgba(31,22,17,.25)';for(let i=0;i<14;i++){x.beginPath();x.ellipse(i*105+20,655-(i%3)*12,50,12,0,0,7);x.fill()}
 }
-function addTown(){
- if(S.zone!=="长安城")return;
- for(let i=-30;i<=30;i+=10){let road=box(0xc7b078,[6,.05,100]);road.position.set(i,0,0);scene.add(road)}
- const npcs=[["药师",0xf1d35b,-10,3],["铁匠",0x777777,10,2],["任务使者",0x4e6bd6,0,-15]];
- npcs.forEach(([n,c,x,z])=>{let g=new THREE.Group();g.userData={npc:n};g.add(box(c,[1.2,2,.9]));let h=new THREE.Mesh(new THREE.SphereGeometry(.5,14,10),mat(0xf0bd8d));h.position.y=1.45;g.add(h);g.position.set(x,0,z);scene.add(g);objects.push(g)})
- for(let i=-20;i<=20;i+=10)for(let z=-20;z<=20;z+=10){if(Math.abs(i)<7&&Math.abs(z)<7)continue;let b=box(0x8d5842,[4,3,4]);b.position.set(i,1.5,z);scene.add(b)}
+
+function sprite(px,py,scale,kind='hero',state='idle',frame=0,flip=false){
+ x.save();x.translate(px,py);if(flip)x.scale(-1,1);x.scale(scale,scale);
+ let bob=state==='idle'?Math.sin(anim/500+frame)*2:0;
+ if(state==='hit')x.rotate(Math.sin(anim/70)*.06);
+ // shadow
+ x.fillStyle='rgba(0,0,0,.28)';x.beginPath();x.ellipse(0,4,42,12,0,0,7);x.fill();
+ x.translate(0,bob);
+ if(kind==='hero'){
+   // cape
+   x.fillStyle='#8c2927';x.beginPath();x.moveTo(-26,-95);x.quadraticCurveTo(-58,-20,-34,18);x.lineTo(12,10);x.lineTo(22,-84);x.closePath();x.fill();
+   // robe
+   x.fillStyle='#d8b878';x.beginPath();x.moveTo(-26,-75);x.lineTo(-43,20);x.quadraticCurveTo(0,38,43,20);x.lineTo(25,-75);x.closePath();x.fill();
+   x.fillStyle='#53352b';x.beginPath();x.moveTo(-16,-68);x.lineTo(0,25);x.lineTo(16,-68);x.closePath();x.fill();
+   // sleeves
+   x.fillStyle='#9d302a';x.beginPath();x.roundRect(-48,-68,24,72,10);x.fill();x.beginPath();x.roundRect(24,-68,24,72,10);x.fill();
+   // head
+   x.fillStyle='#e7b58f';x.beginPath();x.arc(0,-92,27,0,7);x.fill();
+   x.fillStyle='#171821';x.beginPath();x.arc(0,-104,29,Math.PI,0);x.lineTo(27,-91);x.quadraticCurveTo(12,-108,0,-101);x.quadraticCurveTo(-12,-108,-27,-91);x.closePath();x.fill();
+   // hair tail
+   x.fillStyle='#171821';x.beginPath();x.moveTo(23,-103);x.quadraticCurveTo(62,-74,34,-38);x.lineTo(18,-52);x.closePath();x.fill();
+   // eyes
+   x.fillStyle='#34231e';x.fillRect(-11,-93,6,3);x.fillRect(5,-93,6,3);
+   // belt
+   x.fillStyle='#a36c32';x.fillRect(-34,-10,68,9);
+   // boots
+   x.fillStyle='#2c2730';x.roundRect(-31,18,25,15,5);x.fill();x.roundRect(6,18,25,15,5);x.fill();
+   // sword
+   x.strokeStyle='#dbe5ee';x.lineWidth=5;x.beginPath();x.moveTo(42,-44);x.lineTo(78,-110);x.stroke();x.strokeStyle='#d5a34c';x.lineWidth=4;x.beginPath();x.moveTo(30,-37);x.lineTo(54,-25);x.stroke();
+ }else if(kind==='pet'){
+   x.fillStyle='#d8e8ee';x.beginPath();x.ellipse(0,-35,35,29,0,0,7);x.fill();
+   x.fillStyle='#a6c7d5';x.beginPath();x.moveTo(-28,-48);x.lineTo(-52,-92);x.lineTo(-13,-69);x.closePath();x.fill();x.beginPath();x.moveTo(28,-48);x.lineTo(52,-92);x.lineTo(13,-69);x.closePath();x.fill();
+   x.fillStyle='#263345';x.beginPath();x.arc(-11,-37,4,0,7);x.arc(11,-37,4,0,7);x.fill();
+   x.fillStyle='#e7c2c7';x.beginPath();x.ellipse(0,-24,10,7,0,0,7);x.fill();
+   x.fillStyle='#b9d7df';x.beginPath();x.ellipse(0,10,29,23,0,0,7);x.fill();
+   x.fillStyle='#9bb7c1';x.beginPath();x.moveTo(-28,10);x.quadraticCurveTo(-62,28,-30,38);x.quadraticCurveTo(-5,30,-15,12);x.fill();
+ }else{
+   x.fillStyle=kind==='bandit'?'#493c55':'#45605a';x.beginPath();x.moveTo(-24,-70);x.lineTo(-43,20);x.quadraticCurveTo(0,36,43,20);x.lineTo(25,-70);x.closePath();x.fill();
+   x.fillStyle='#d69d78';x.beginPath();x.arc(0,-88,25,0,7);x.fill();
+   x.fillStyle='#1e2029';x.beginPath();x.arc(0,-98,28,Math.PI,0);x.fill();
+   x.fillStyle='#e5d6a1';x.fillRect(-31,-68,62,8);
+   x.fillStyle='#28242d';x.fillRect(-30,20,24,16);x.fillRect(6,20,24,16);
+   if(kind==='monster'){x.fillStyle='#8b3e4b';x.beginPath();x.moveTo(-28,-110);x.lineTo(-42,-140);x.lineTo(-10,-118);x.moveTo(28,-110);x.lineTo(42,-140);x.lineTo(10,-118);x.fill()}
+ }
+ x.restore();
 }
-function addEnemy(x,z,emoji,name,hp,atk){let g=new THREE.Group();g.userData={enemy:true,emoji,name,hp,maxHp:hp,atk};g.add(box(0x6b3f31,[1.2,1.3,1]));let h=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),mat(0x8b563d));h.position.y=1.05;g.add(h);g.position.set(x,0,z);scene.add(g);objects.push(g)}
-function nearestEnemy(){let a=objects.filter(o=>o.userData.enemy&&!o.userData.dead);a.sort((p,q)=>p.position.distanceTo(player.position)-q.position.distanceTo(player.position));return a[0]}
-function battleNearest(){if(!canMove)return;let e=nearestEnemy();if(!e){notice("附近没有敌人");return}if(e.position.distanceTo(player.position)>9){notice("靠近敌人后再战斗");return}startBattle(e)}
-function interact(){let n=objects.filter(o=>o.userData.npc).sort((a,b)=>a.position.distanceTo(player.position)-b.position.distanceTo(player.position))[0];if(n&&n.position.distanceTo(player.position)<5){let name=n.userData.npc;if(name==="药师"){S.inventory.push("回复药");S.gold=Math.max(0,S.gold-30);notice("药师给你一瓶回复药，花费30金")}else if(name==="铁匠"){S.atk+=2;S.def+=1;S.gold=Math.max(0,S.gold-80);notice("铁匠强化装备：攻击+2 防御+1")}else{S.quest=Math.max(S.quest,1);notice("任务：击败3只野外妖怪")}hud();saveGame()}else notice("附近没有可交互的NPC")}
-function heal(){let i=S.inventory.indexOf("回复药");if(i<0){notice("没有回复药");return}S.inventory.splice(i,1);S.hp=Math.min(S.hpMax,S.hp+45);S.mp=Math.min(S.mpMax,S.mp+20);hud();notice("使用回复药")}
-function startBattle(e){canMove=false;battle={e,guard:false};$("enemyName").textContent=e.userData.name;$("enemyEmoji").textContent=e.userData.emoji;$("battleTitle").textContent="遭遇 · "+e.userData.name;$("battle").style.display="block";log("敌人进入战斗！")}
-function log(t){$("battleLog").textContent=t;updateBattleBars()}
-function updateBattleBars(){let e=battle?.e?.userData;if(!e)return;$("bHeroHp").style.width=(S.hp/S.hpMax*100)+"%";$("bEnemyHp").style.width=(e.hp/e.maxHp*100)+"%";hud()}
-function playerAction(a){
- if(!battle)return;let e=battle.e.userData;if(a==="item"){heal();enemyTurn();return}
- if(a==="guard"){battle.guard=true;log("你举起武器防御，本回合受到伤害降低。");enemyTurn();return}
- let dmg=0;
- if(a==="attack")dmg=Math.round(S.atk*(.85+Math.random()*.35));
- if(a==="skill"){if(S.mp<15){log("MP不足");return}S.mp-=15;dmg=Math.round(S.atk*1.9);flash(0xff8b35)}
- if(a==="pet"){dmg=S.pet.atk+Math.floor(Math.random()*8);flash(0x77aaff)}
- e.hp=Math.max(0,e.hp-dmg);log("你造成 "+dmg+" 点伤害。");updateBattleBars();
- if(e.hp<=0){winBattle();return}enemyTurn();
+
+function nameplate(px,py,n,hp,max){
+ text(n,px,py-135,16,'#f6e5c4','center');bar(px-48,py-123,96,7,hp,max,'#d75a4f','#8e2524')
 }
-function enemyTurn(){let e=battle.e.userData;setTimeout(()=>{if(!battle)return;let d=Math.max(1,Math.round(e.atk*(.8+Math.random()*.35))-(battle.guard?Math.round(S.def*.9):S.def));S.hp=Math.max(0,S.hp-d);battle.guard=false;log(e.name+" 反击，造成 "+d+" 点伤害。");updateBattleBars();if(S.hp<=0)loseBattle()},350)}
-function winBattle(){let e=battle.e;e.userData.dead=true;e.visible=false;S.kills++;S.quest=Math.min(3,S.kills);let xp=25+e.userData.maxHp/4,g=20+Math.floor(Math.random()*40);S.xp+=xp;S.gold+=g;if(Math.random()<.35){S.inventory.push("回复药");log("胜利！获得 "+Math.floor(xp)+" XP、"+g+" 金，并掉落回复药。")}else log("胜利！获得 "+Math.floor(xp)+" XP、"+g+" 金。");if(S.xp>=S.lv*100){S.xp-=S.lv*100;S.lv++;S.hpMax+=20;S.mpMax+=10;S.atk+=4;S.def+=2;S.hp=S.hpMax;S.mp=S.mpMax;notice("升级！现在 Lv."+S.lv)}updateBattleBars();setTimeout(closeBattle,900);saveGame()}
-function loseBattle(){S.hp=Math.ceil(S.hpMax*.4);S.gold=Math.max(0,S.gold-50);log("你被击倒，回到长安，损失50金。");setTimeout(closeBattle,1000)}
-function flee(){if(Math.random()<.75){log("成功逃跑");setTimeout(closeBattle,400)}else{log("逃跑失败");enemyTurn()}}
-function closeBattle(){$("battle").style.display="none";battle=null;canMove=true;hud()}
-function flash(c){let f=new THREE.Mesh(new THREE.SphereGeometry(1.2,16,8),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.8}));f.position.copy(player.position);f.position.y=1.5;scene.add(f);setTimeout(()=>scene.remove(f),180)}
-function showPanel(type){let p=$("panel");p.style.display="block";let html="";
- if(type==="char")html="<h3>角色</h3><div class=row><span>等级</span><b>"+S.lv+"</b></div><div class=row><span>经验</span><b>"+S.xp+" / "+S.lv*100+"</b></div><div class=row><span>攻击</span><b>"+S.atk+"</b></div><div class=row><span>防御</span><b>"+S.def+"</b></div><div class=row><span>门派</span><b>烈阳宫</b></div>";
- if(type==="bag")html="<h3>背包</h3><div class=small>"+(S.inventory.length?S.inventory.join("、"):"空空如也")+"</div><hr><button onclick='closePanel()'>关闭</button>";
- if(type==="pet")html="<h3>宠物 · "+S.pet.name+"</h3><div class=row><span>气血</span><b>"+S.pet.hp+"</b></div><div class=row><span>攻击</span><b>"+S.pet.atk+"</b></div><div class=row><span>技能</span><b>"+S.pet.skill+"</b></div><div class=small>第一阶段默认赠送灵狐，后续版本加入捕捉、洗练、技能书与进阶。</div>";
- if(type==="quest")html="<h3>任务</h3><div>主线：调查桃源村附近妖怪。</div><div class=small>击败进度："+Math.min(3,S.kills)+"/3</div>"+(S.kills>=3?"<div class=good style='margin-top:8px;padding:8px;border-radius:10px'>完成！去任务使者处领取奖励。</div>":"");
- p.innerHTML=html+"<div style='margin-top:10px'><button onclick='closePanel()'>关闭</button></div>";
+
+function drawWorld(){
+ worldBg();
+ // shrine
+ panel(28,28,270,86);text('星火西游 · 云州古道',48,56,22,'#f1d79b');text('Lv.'+S.level+'  '+hero.name+' · '+hero.cls,48,88,14,'#cbb58d');
+ // player
+ sprite(S.heroX,520,1.12,'hero','idle',0);nameplate(S.heroX,520,hero.name,S.hp,S.maxhp);
+ sprite(520,570,.7,'pet','idle');text('灵狐',520,510,14,'#f0e2c6','center');
+ // NPC
+ sprite(760,520,.98,'bandit','idle');text('巡路校尉',760,380,15,'#f2d7ac','center');
+ panel(650,410,220,58);text('「前方妖雾渐浓，慎行。」',760,439,15,'#ead9bd','center');
+ // interaction cards
+ panel(900,585,330,96);text('点击古道尽头进入战斗',920,610,16,'#f1d79b');text('金钱 '+S.gold+'  ·  灵狐 '+S.petHp+' HP',920,644,14,'#cbb58d');
+ drawMobileControls();
 }
-function closePanel(){$("panel").style.display="none"}
-function move(dt){
- if(!canMove)return;
- let v=new THREE.Vector3(dir.x,0,dir.z);if(v.lengthSq()>1)v.normalize();player.position.x+=v.x*dt*7;player.position.z+=v.z*dt*7;
- player.position.x=Math.max(-44,Math.min(44,player.position.x));player.position.z=Math.max(-44,Math.min(44,player.position.z));
- if(v.lengthSq()>.01)player.rotation.y=Math.atan2(v.x,v.z);
- let target=new THREE.Vector3(player.position.x,2.4,player.position.z+5),camPos=new THREE.Vector3(player.position.x,7,player.position.z+10);camera.position.lerp(camPos,.09);camera.lookAt(target);
+function drawMobileControls(){
+ panel(25,600,155,75);text('◀',62,637,34,'#e6d2ac','center');text('▶',143,637,34,'#e6d2ac','center');
 }
-function loop(){requestAnimationFrame(loop);let dt=Math.min(clock.getDelta(),.04);move(dt);renderer.render(scene,camera)}
-function start(){
- loadGame();S.zone="长安城";$("start").style.display="none";clock=new THREE.Clock();makeWorld();loop();saveGame();
+
+function battleBg(){
+ x.fillStyle=grad(0,H,'#151727','#4c3030');x.fillRect(0,0,W,H);
+ for(let i=0;i<5;i++)mountain(100+i*300,520,1,'#29283a');
+ x.fillStyle='#44362e';x.fillRect(0,510,W,210);
+ x.fillStyle='#755642';x.fillRect(0,555,W,165);
+ for(let i=0;i<10;i++){x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.ellipse(i*150+40,650,55,13,0,0,7);x.fill()}
+ // moon
+ x.fillStyle='#e6d6a8';x.beginPath();x.arc(1080,125,52,0,7);x.fill();
 }
-$("startBtn").onclick=start;
-addEventListener("resize",()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-addEventListener("keydown",e=>{keys[e.key]=true;updateKeys()});addEventListener("keyup",e=>{keys[e.key]=false;updateKeys()});
-function updateKeys(){dir.x=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0);dir.z=(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0)}
-const stick=$("stick"),knob=$("knob");let sid=null;
-function stickMove(e){let r=stick.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;let m=Math.min(45,Math.hypot(x,y)),a=Math.atan2(y,x);knob.style.transform=`translate(${Math.cos(a)*m}px,${Math.sin(a)*m}px)`;dir.x=Math.cos(a)*m/45;dir.z=Math.sin(a)*m/45}
-stick.addEventListener("pointerdown",e=>{sid=e.pointerId;stick.setPointerCapture(sid);stickMove(e)})
-stick.addEventListener("pointermove",e=>{if(e.pointerId===sid)stickMove(e)})
-stick.addEventListener("pointerup",e=>{sid=null;knob.style.transform="";dir.x=dir.z=0})
+const enemies=[['赤羽妖姬','monster'],['山魈头领','bandit'],['雾灵','monster']];
+function drawBattle(){
+ battleBg();
+ panel(25,22,1230,75);text('云州古道 · 妖雾战',48,50,22,'#f1d79b');text('第 '+(S.turn+1)+' 回合',1215,50,17,'#cbb58d','right');
+ // turn order
+ panel(430,105,420,46);text('行动序列  玄曜 → 灵狐 → 赤羽妖姬 → 山魈头领',640,128,14,'#dfcba7','center');
+ sprite(280,540,1.22,'hero',S.turn===0?'idle':'idle');nameplate(280,540,hero.name,S.hp,S.maxhp);
+ sprite(430,575,.78,'pet');bar(385,482,90,7,S.petHp,520,'#7bd6d2','#2b7e87');text('灵狐',430,468,14,'#f0e2c6','center');
+ [820,980,1130].forEach((px,i)=>{let hp=S.enemyHp[i];sprite(px,520,.9,enemies[i][1],hp<=0?'hit':'idle');nameplate(px,520,enemies[i][0],hp,420)});
+ // bottom command
+ panel(25,590,1230,108);
+ text('玄曜',52,616,18,'#f1d79b');bar(120,604,210,14,S.hp,S.maxhp,'#e85b53','#9d2525');text(S.hp+'/'+S.maxhp,335,612,13,'#e8d8bd','right');
+ bar(120,632,210,11,S.mp,S.maxmp,'#62a8e5','#315c9a');text(S.mp+'/'+S.maxmp,335,638,13,'#e8d8bd','right');
+ const skills=[['破军斩','普通攻击'],['炎龙诀','火焰法术'],['回春术','恢复生命'],['御剑阵','群体伤害']];
+ skills.forEach((q,i)=>{let bx=390+i*205; x.fillStyle='rgba(84,51,34,.95)';rr(x,bx,604,180,72,12);x.strokeStyle='#a98755';x.lineWidth=1;strokeRR(bx,604,180,72,12);text(q[0],bx+90,627,18,'#f4dfb2','center');text(q[1],bx+90,653,12,'#bfae8e','center')});
+}
+function attack(i){
+ if(S.enemyHp.every(v=>v<=0))return;
+ if(i===0){S.enemyHp[0]=Math.max(0,S.enemyHp[0]-125);S.mp=Math.min(S.maxmp,S.mp+8);effect(820,450,'-125','#f0d36e')}
+ if(i===1&&S.mp>=45){S.mp-=45;S.enemyHp[0]=Math.max(0,S.enemyHp[0]-190);effect(820,450,'-190','#ff7a4d')}
+ if(i===2){S.hp=Math.min(S.maxhp,S.hp+170);effect(280,420,'+170','#78dca0')}
+ if(i===3&&S.mp>=80){S.mp-=80;S.enemyHp=S.enemyHp.map(v=>Math.max(0,v-100));effect(980,400,'-100','#9e8cff')}
+ S.turn++;
+ setTimeout(()=>enemyTurn(),350);
+}
+function enemyTurn(){
+ if(S.enemyHp.every(v=>v<=0)){S.msg='战斗胜利！获得 260 金、72 经验。';S.gold+=260;S.exp+=72;if(S.exp>=100){S.level++;S.exp-=100;S.maxhp+=80;S.hp=S.maxhp}return}
+ let dmg=25+Math.floor(Math.random()*38);S.hp=Math.max(0,S.hp-dmg);effect(280,430,'-'+dmg,'#ff8b76');
+ if(S.hp<=0){S.hp=S.maxhp;S.mp=S.maxmp;S.msg='玄曜倒下后被灵狐拖回安全处……';S.scene='world'}
+}
+function effect(px,py,t,col){floaters.push({x:px,y:py,t,col,life:1});for(let i=0;i<14;i++)particles.push({x:px,y:py,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*5,life:1,col})}
+
+function draw(){
+ x.clearRect(0,0,W,H);
+ if(S.scene==='world')drawWorld();else drawBattle();
+ // particles
+ particles.forEach(p=>{x.globalAlpha=Math.max(0,p.life);x.fillStyle=p.col;x.beginPath();x.arc(p.x,p.y,3+p.life*3,0,7);x.fill();p.x+=p.vx;p.y+=p.vy;p.life-=.035});particles=particles.filter(p=>p.life>0);x.globalAlpha=1;
+ floaters.forEach(f=>{x.globalAlpha=f.life;text(f.t,f.x,f.y,24,f.col,'center');f.y-=.7;f.life-=.025});floaters=floaters.filter(f=>f.life>0);x.globalAlpha=1;
+ if(S.msg){x.fillStyle='rgba(20,14,12,.7)';rr(x,350,520,580,46,20);text(S.msg,640,543,15,'#ead7b3','center')}
+}
+function loop(t){anim=t;draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+
+c.addEventListener('pointerdown',e=>{
+ const r=c.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width,py=(e.clientY-r.top)*H/r.height;
+ if(S.scene==='world'){
+   if(px>870&&py>540){S.scene='battle';S.msg='妖物拦路！选择技能迎战。';}
+   else if(px<210&&py>580){S.heroX=Math.max(100,S.heroX-55)}
+   else if(px<210&&py>580){S.heroX=Math.min(700,S.heroX+55)}
+   else if(px<620){S.heroX=Math.min(700,S.heroX+35)}
+ }else{
+   if(py>595){
+     if(px>390&&px<570)attack(0);
+     else if(px>=570&&px<775)attack(1);
+     else if(px>=775&&px<980)attack(2);
+     else if(px>=980)attack(3);
+   }
+ }
+});
+addEventListener('keydown',e=>{
+ if(S.scene==='world'&&(e.key==='ArrowRight'||e.key==='d'))S.heroX=Math.min(700,S.heroX+30);
+ if(S.scene==='world'&&(e.key==='ArrowLeft'||e.key==='a'))S.heroX=Math.max(80,S.heroX-30);
+ if(e.key==='Enter')S.scene='battle';
+ if(S.scene==='battle'&&['1','2','3','4'].includes(e.key))attack(+e.key-1);
+});
 </script>
 </body></html>
