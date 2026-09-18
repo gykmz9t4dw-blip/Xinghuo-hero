@@ -1,14 +1,14 @@
-# 星火勇者 2.0
+# 星火勇者：终焉之门（最终版）
 
-这是一个无需服务器、无需数据库的单文件 iPhone 网页游戏。
+将 `index.html` 上传到 GitHub Pages 仓库根目录。
 
-## GitHub Pages
-1. 创建 Public 仓库。
-2. 上传 `index.html` 到仓库根目录。
-3. Settings → Pages。
-4. Source 选择 Deploy from a branch。
-5. Branch 选择 `main`，Folder 选择 `/ (root)`。
-6. 保存后等待 GitHub Pages 发布。
-
-发布后的网址通常为：
-https://你的用户名.github.io/仓库名/
+玩法：
+- iPhone 左下摇杆移动
+- 靠近 NPC / 宝箱 / 敌人后点互动
+- 村庄 → 森林 → 深渊城堡
+- 铁匠任务、装备强化、天赋、宝箱、药水
+- 普通怪、精英怪、最终 Boss
+- Boss 二阶段
+- 回合制普攻 / 烈焰斩 / 防御 / 星爆
+- 等级、经验、金币、装备、任务、自动存档
+- Three.js 通过 CDN 加载，运行时需要联网

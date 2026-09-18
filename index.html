@@ -3,191 +3,104 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#111827">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>星火勇者 2.0</title>
+<title>星火勇者：终焉之门</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:#0b1020;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
-button{font:inherit;border:0;border-radius:14px;padding:14px 16px;background:#263451;color:white;font-weight:700;touch-action:manipulation}
-button:active{transform:scale(.98)}
-button.primary{background:#7c3aed}
-button.good{background:#15803d}
-button.warn{background:#b45309}
-button:disabled{opacity:.45}
-#app{max-width:720px;margin:auto;min-height:100vh;padding:16px}
-.screen{display:none}.screen.active{display:block}
-.card{background:#141d33;border:1px solid #293653;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px #0003}
-h1,h2,h3{margin:0 0 12px}
-h1{font-size:34px;text-align:center;margin-top:30px}
-.sub{text-align:center;color:#aab6d0;margin-bottom:24px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.class{cursor:pointer;text-align:center;min-height:150px}
-.class.selected{outline:3px solid #a78bfa;background:#211c3b}
-.icon{font-size:42px;margin-bottom:8px}
-.muted{color:#9aa8c2;font-size:13px}
-.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
-.stat{background:#0f172a;border-radius:12px;padding:9px;text-align:center;font-size:12px}
-.stat b{display:block;font-size:16px;margin-top:3px}
-.bar{height:10px;background:#0b1222;border-radius:99px;overflow:hidden;margin:5px 0 10px}
-.fill{height:100%;transition:width .25s}
-.hp{background:#ef4444}.mp{background:#3b82f6}.xp{background:#a78bfa}
-.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.log{height:180px;overflow:auto;background:#090e1a;border-radius:14px;padding:12px;font-size:13px;line-height:1.65}
-.enemy{text-align:center;font-size:56px;padding:10px}
-.mapbtn{display:flex;align-items:center;gap:12px;text-align:left;width:100%;margin-bottom:9px}
-.mapbtn span:last-child{margin-left:auto}
-.shopitem{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #293653}
-nav{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#0b1020ee;padding:10px 0 calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
-.small{padding:10px 12px;font-size:13px}
-.notice{padding:10px 12px;background:#1e293b;border-radius:12px;color:#cbd5e1;font-size:13px}
-@media(max-width:390px){#app{padding:12px}.grid3{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050814;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
+#game{position:fixed;inset:0}canvas{display:block}.panel{position:fixed;background:rgba(6,10,22,.82);border:1px solid #ffffff22;border-radius:16px;backdrop-filter:blur(9px);box-shadow:0 12px 35px #0008}
+#top{left:10px;right:10px;top:max(8px,env(safe-area-inset-top));padding:9px 10px;display:flex;gap:8px;align-items:center;z-index:5}
+#stats{flex:1;font-size:11px;line-height:1.25}.bar{height:7px;background:#20283b;border-radius:9px;overflow:hidden;margin-top:3px}.hp{height:100%;background:#ef5350}.mp{height:100%;background:#42a5f5}
+button{border:0;border-radius:11px;background:#26324e;color:#fff;padding:9px 11px;font-weight:800;font-size:12px}button:active{transform:scale(.95);filter:brightness(1.2)}
+#mode{font-weight:900;font-size:12px;min-width:45px;text-align:center}
+#hint{left:50%;transform:translateX(-50%);top:70px;padding:7px 10px;font-size:11px;z-index:4;white-space:nowrap}
+#joystick{position:fixed;left:16px;bottom:max(17px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:#ffffff0c;border:2px solid #ffffff25;z-index:8}
+#stick{position:absolute;left:41px;top:41px;width:48px;height:48px;border-radius:50%;background:#ffffff30;border:2px solid #fff6}
+#actions{position:fixed;right:11px;bottom:max(15px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,82px);gap:7px;z-index:8}
+#actions button{height:48px;background:#18233ae8}
+#log{left:10px;bottom:max(12px,env(safe-area-inset-bottom));width:min(330px,55vw);max-height:108px;padding:8px 10px;font-size:10px;line-height:1.4;z-index:6;pointer-events:none}
+#menu,#quest{right:10px;top:70px;width:270px;padding:12px;z-index:10;display:none}.row{display:flex;justify-content:space-between;gap:8px;margin:7px 0;font-size:12px}.tag{background:#293451;padding:2px 7px;border-radius:8px}
+#dialog{left:50%;bottom:16%;transform:translateX(-50%);width:min(570px,91vw);padding:13px;z-index:20;display:none}.dialogText{font-size:13px;line-height:1.5;margin-bottom:10px}
+#battle{position:fixed;inset:0;display:none;z-index:7;pointer-events:none}
+#battleTitle{position:absolute;left:50%;top:15%;transform:translateX(-50%);font-size:23px;font-weight:1000;text-shadow:0 3px 18px #000;white-space:nowrap}
+#bossbar{position:absolute;left:50%;top:21%;transform:translateX(-50%);width:min(430px,75vw);display:none}
+#battleBtns{position:absolute;left:50%;transform:translateX(-50%);bottom:max(13px,env(safe-area-inset-bottom));display:flex;gap:6px;pointer-events:auto}
+#battleBtns button{min-width:76px;height:48px}.small{font-size:10px;opacity:.75}
+#title{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#23396a,#050814 65%);display:flex;align-items:center;justify-content:center;text-align:center}
+#titleBox{width:min(500px,88vw);padding:28px}.title{font-size:36px;font-weight:1000;letter-spacing:2px;text-shadow:0 6px 30px #000}.sub{opacity:.75;margin:10px 0 25px;font-size:13px}
+@media(max-width:600px){#log{display:none}#hint{top:67px}.title{font-size:29px}}
 </style>
 </head>
 <body>
-<div id="app">
-<section id="start" class="screen active">
-  <h1>🔥 星火勇者</h1>
-  <div class="sub">iPhone 回合制 RPG · 2.0</div>
-  <div class="card">
-    <h3>选择你的职业</h3>
-    <div class="grid3" id="classes"></div>
-  </div>
-  <button class="primary" style="width:100%" onclick="startGame()">开始冒险</button>
-  <button style="width:100%;margin-top:10px" onclick="loadGame()">读取存档</button>
-  <p class="muted" style="text-align:center;margin-top:18px">存档保存在本机浏览器中</p>
-</section>
-
-<section id="game" class="screen">
-  <div class="row"><h2>星火勇者</h2><button class="small" onclick="saveGame()">💾 保存</button></div>
-  <div class="card" id="hero"></div>
-  <div id="page"></div>
-  <nav>
-    <button onclick="showPage('battle')">⚔️ 战斗</button>
-    <button onclick="showPage('map')">🗺️ 地图</button>
-    <button onclick="showPage('shop')">🛒 商店</button>
-  </nav>
-</section>
-</div>
+<div id="title"><div id="titleBox" class="panel"><div class="title">星火勇者</div><div class="sub">终焉之门 · 3D 回合制 RPG</div><button id="start" style="font-size:16px;padding:13px 28px">开始冒险</button><div class="small" style="margin-top:14px">iPhone：左下摇杆移动，右下按钮操作</div></div></div>
+<div id="game"></div>
+<div id="top" class="panel"><div id="mode">村庄</div><div id="stats"></div><button id="questBtn">任务</button><button id="menuBtn">角色</button><button id="saveBtn">存档</button></div>
+<div id="hint" class="panel">靠近 NPC / 宝箱 / 敌人后点「互动」</div>
+<div id="joystick"><div id="stick"></div></div>
+<div id="actions"><button id="interact">互动</button><button id="heal">🧪 药水</button><button id="talent">🌟 天赋</button><button id="run">撤退</button></div>
+<div id="log" class="panel"></div>
+<div id="menu" class="panel"><h3 style="margin:0 0 8px">角色</h3>
+<div class="row"><span>等级</span><b id="lv"></b></div><div class="row"><span>攻击</span><b id="atk"></b></div><div class="row"><span>防御</span><b id="def"></b></div><div class="row"><span>暴击</span><b id="crit"></b></div><div class="row"><span>金币</span><b id="gold"></b></div><div class="row"><span>天赋点</span><b id="tp"></b></div><div class="row"><span>武器</span><span class="tag" id="weapon"></span></div><div class="row"><span>护甲</span><span class="tag" id="armor"></span></div>
+<button id="upgrade">🔨 强化装备（100G）</button><button id="closeMenu" style="margin-left:5px">关闭</button></div>
+<div id="quest" class="panel"><h3 style="margin:0 0 8px">任务日志</h3><div id="questText" style="font-size:12px;line-height:1.6"></div><button id="closeQuest" style="margin-top:8px">关闭</button></div>
+<div id="dialog" class="panel"><div id="dialogText" class="dialogText"></div><div id="dialogBtns"></div></div>
+<div id="battle"><div id="battleTitle"></div><div id="bossbar"><div class="bar"><div class="hp" id="bossHp" style="width:100%"></div></div></div>
+<div id="battleBtns"><button onclick="battleAct('attack')">⚔ 普攻</button><button onclick="battleAct('skill')">🔥 烈焰斩</button><button onclick="battleAct('guard')">🛡 防御</button><button onclick="battleAct('burst')">⚡ 星爆</button></div></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-const classes=[
- {id:'knight',name:'烈焰骑士',icon:'🔥',desc:'高生命、高防御，技能造成强力火焰伤害',hp:130,mp:35,atk:18,def:10,skill:'烈焰斩'},
- {id:'mage',name:'星术师',icon:'✨',desc:'高魔力，技能伤害最高',hp:90,mp:70,atk:12,def:6,skill:'星陨术'},
- {id:'ranger',name:'暗影游侠',icon:'🏹',desc:'攻击较高，有机会造成暴击',hp:105,mp:50,atk:16,def:7,skill:'暗影箭'}
-];
-let C=classes[0], P, stage='forest', enemy=null, selected='knight', page='battle';
+if(!window.THREE){document.body.innerHTML='<div style="padding:30px;color:#fff">3D 引擎加载失败，请联网后刷新。</div>';throw Error('THREE')}
 
-const enemies={
- forest:[['🍃','森林史莱姆',48,8,3,16],['🐺','灰狼',62,11,4,20],['👺','哥布林',75,13,5,25]],
- desert:[['🦂','赤沙蝎',90,16,7,32],['🧟','荒原亡魂',105,18,8,38],['🐍','沙蛇',82,20,6,35]],
- castle:[['🧛','暗影骑士',140,23,11,55],['👹','魔将',175,27,13,70],['🐉','暗夜魔龙',280,34,16,150]]
-};
-function $(id){return document.getElementById(id)}
-function initClasses(){
- $('classes').innerHTML=classes.map(c=>`<div class="card class ${c.id===selected?'selected':''}" onclick="selectClass('${c.id}')"><div class="icon">${c.icon}</div><b>${c.name}</b><div class="muted">${c.desc}</div></div>`).join('');
+const key='sparkHeroFinal';
+const S={scene:'town',level:1,xp:0,hp:130,maxhp:130,mp:55,maxmp:55,atk:19,def:8,crit:.12,gold:150,pot:3,talent:3,weapon:1,armor:1,kills:0,quest:0,boss:false,chapter:1};
+try{Object.assign(S,JSON.parse(localStorage.getItem(key)||'{}'))}catch(e){}
+const $=id=>document.getElementById(id);let renderer,scene,cam,clock,hero,world=[],battleEnemy=null,started=false;
+function save(){localStorage.setItem(key,JSON.stringify(S));log('💾 已保存')}
+function log(x){$('log').innerHTML='<div>'+x+'</div>'+$('log').innerHTML}
+function mat(c){return new THREE.MeshStandardMaterial({color:c,roughness:.7})}
+function box(c,s){let m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.castShadow=m.receiveShadow=true;return m}
+function sph(c,r){let m=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),mat(c));m.castShadow=true;return m}
+function heroModel(){let g=new THREE.Group();let body=box(0x3869ff,[.9,1.2,.58]);body.position.y=1;g.add(body);let h=sph(0xffd0a5,.37);h.position.y=1.85;g.add(h);let cape=box(0x762cff,[.98,1.05,.08]);cape.position.set(0,1.03,.34);g.add(cape);let sw=box(0xe5efff,[.12,1.0,.12]);sw.position.set(.63,1.25,0);sw.rotation.z=-.35;g.add(sw);return g}
+function enemyModel(type){let g=new THREE.Group(),c=type==='boss'?0x9a36ff:type==='elite'?0xe45b39:0x45d5a2,r=type==='boss'?1:.66;let b=sph(c,r);b.position.y=.7;g.add(b);for(let x of[-.2,.2]){let e=sph(0xffffff,.09);e.position.set(x,.84,.5);g.add(e)}return g}
+function add(o){scene.add(o);world.push(o);return o}function clear(){for(let o of world)scene.remove(o);world=[]}
+function ground(c){let g=box(c,[34,.2,34]);g.position.y=-.12;add(g)}
+function tree(x,z){let g=new THREE.Group(),t=box(0x70452d,[.3,1,.3]),c=sph(0x2d8a4e,.78);t.position.y=.5;c.position.y=1.35;g.add(t,c);g.position.set(x,0,z);add(g)}
+function npc(x,z,c,name){let n=heroModel();n.scale.set(.75,.75,.75);n.position.set(x,0,z);n.userData={kind:'npc',name};n.children[0].material.color.set(c);add(n)}
+function chest(x,z){let c=box(0xd49a2f,[1.1,.7,.8]);c.position.set(x,.35,z);c.userData={kind:'chest',open:false};add(c)}
+function enemy(x,z,type){let e=enemyModel(type);e.position.set(x,0,z);e.userData={kind:'enemy',type};add(e)}
+function buildTown(){clear();ground(0x25372a);for(let i=-14;i<=14;i+=4){tree(i,-14);tree(i,14);tree(-14,i);tree(14,i)}let h=box(0x704532,[5,2.8,4]);h.position.set(-7,1.4,-7);add(h);npc(-2,-3,0xffc857,'铁匠');npc(4,-4,0x82b9ff,'占卜师');chest(7,3);enemy(7,-7,'elite');log('🏘️ 星火村：和铁匠对话领取清剿任务。')}
+function buildForest(){clear();ground(0x314a31);for(let i=0;i<25;i++)tree((Math.random()-.5)*27,(Math.random()-.5)*27);enemy(7,-5,'elite');enemy(-6,-6,'slime');enemy(6,6,'slime');enemy(-7,5,'slime');chest(1,-7);log('🌲 星辉森林：击败精英并寻找通往城堡的道路。')}
+function buildCastle(){clear();ground(0x2b2e39);for(let x=-12;x<=12;x+=4){let a=box(0x565d70,[1,4,1]);a.position.set(x,2,-12);add(a);let b=a.clone();b.position.z=12;add(b)}enemy(-7,-6,'elite');enemy(7,-6,'elite');enemy(-7,2,'elite');enemy(7,2,'elite');enemy(0,-7,'boss');log('🏰 深渊城堡：终焉之门就在最深处。')}
+function setArea(a){S.scene=a;hero.position.set(0,0,6);a==='town'?buildTown():a==='forest'?buildForest():buildCastle();update();save()}
+function nearest(){let best=null,d=2.5;for(let o of world)if(o.userData.kind){let q=hero.position.distanceTo(o.position);if(q<d){d=q;best=o}}return best}
+function interact(){
+let o=nearest();
+if(!o){if(S.scene==='town'&&hero.position.z<-10)return setArea('forest');if(S.scene==='forest'&&hero.position.z>10)return setArea('town');if(S.scene==='forest'&&hero.position.x>10)return setArea('castle');return log('附近没有可互动目标')}
+if(o.userData.kind==='chest'){if(!o.userData.open){o.userData.open=true;S.gold+=90;S.pot++;log('🎁 宝箱：+90G、+1药水');save()}else log('宝箱已打开')}
+if(o.userData.kind==='enemy')startBattle(o.userData.type)
+if(o.userData.kind==='npc')talk(o.userData.name)
 }
-function selectClass(id){selected=id;C=classes.find(x=>x.id===id);initClasses()}
-function startGame(){
- P={name:C.name,level:1,maxHp:C.hp,hp:C.hp,maxMp:C.mp,mp:C.mp,atk:C.atk,def:C.def,xp:0,next:70,gold:80,potions:3,weapon:0,armor:0};
- stage='forest';page='battle';enemy=null;showGame();newBattle();
-}
-function showGame(){$('start').classList.remove('active');$('game').classList.add('active');showPage(page)}
-function saveGame(){
- if(!P)return;
- localStorage.setItem('sparkHeroSave',JSON.stringify({P,stage}));
- toast('存档成功！');
-}
-function loadGame(){
- try{
-  const s=JSON.parse(localStorage.getItem('sparkHeroSave'));
-  if(!s) throw 0;
-  P=s.P;stage=s.stage||'forest';C=classes.find(x=>x.name===P.name)||classes[0];page='battle';showGame();newBattle();toast('已读取存档');
- }catch(e){toast('没有找到存档')}
-}
-function toast(t){let n=document.createElement('div');n.className='notice';n.textContent=t;n.style.position='fixed';n.style.left='16px';n.style.right='16px';n.style.bottom='86px';n.style.zIndex=9;document.body.appendChild(n);setTimeout(()=>n.remove(),1500)}
-function showPage(p){page=p;$('page').innerHTML='';if(p==='battle')renderBattle();if(p==='map')renderMap();if(p==='shop')renderShop();renderHero()}
-function renderHero(){
- $('hero').innerHTML=`<div class="row"><b>${C.icon} ${P.name} Lv.${P.level}</b><span>💰 ${P.gold}　🧪 ${P.potions}</span></div>
- <div class="muted">生命 ${P.hp}/${P.maxHp}</div><div class="bar"><div class="fill hp" style="width:${P.hp/P.maxHp*100}%"></div></div>
- <div class="muted">魔力 ${P.mp}/${P.maxMp}</div><div class="bar"><div class="fill mp" style="width:${P.mp/P.maxMp*100}%"></div></div>
- <div class="muted">经验 ${P.xp}/${P.next}</div><div class="bar"><div class="fill xp" style="width:${P.xp/P.next*100}%"></div></div>
- <div class="stats"><div class="stat">攻击<b>${P.atk}</b></div><div class="stat">防御<b>${P.def}</b></div><div class="stat">武器<b>+${P.weapon}</b></div><div class="stat">护甲<b>+${P.armor}</b></div></div>`;
-}
-function newBattle(){
- let list=enemies[stage], e=list[Math.floor(Math.random()*list.length)];
- enemy={icon:e[0],name:e[1],maxHp:e[2],hp:e[2],atk:e[3],def:e[4],xp:e[5]};
- showPage('battle');
-}
-function renderBattle(){
- if(!enemy){$('page').innerHTML='<div class="card"><h3>准备战斗</h3><button class="primary" onclick="newBattle()">寻找敌人</button></div>';return}
- $('page').innerHTML=`<div class="card"><div class="muted">${stageName()} · ${enemy.name}</div><div class="enemy">${enemy.icon}</div>
- <div style="text-align:center"><b>${enemy.name}</b>　${enemy.hp}/${enemy.maxHp}</div>
- <div class="bar"><div class="fill hp" style="width:${enemy.hp/enemy.maxHp*100}%"></div></div></div>
- <div class="card"><div class="actions">
- <button onclick="attack()">⚔️ 普通攻击</button>
- <button onclick="skill()">✨ ${C.skill}</button>
- <button onclick="defend()">🛡️ 防御</button>
- <button onclick="potion()">🧪 使用药水</button></div></div>
- <div class="card"><div class="log" id="log">${window.battleLog||'战斗开始！'}</div></div>`;
-}
-function stageName(){return stage==='forest'?'迷雾森林':stage==='desert'?'赤砂荒原':'魔王城'}
-function log(t){window.battleLog=(window.battleLog||'')+'<br>'+t;renderBattle();renderHero()}
-function hit(dmg){
- const crit=Math.random()< (C.id==='ranger'?0.25:0.12); if(crit)dmg=Math.floor(dmg*1.7);
- enemy.hp=Math.max(0,enemy.hp-dmg);return [dmg,crit];
-}
-function attack(){
- let [d,crit]=hit(Math.max(1,P.atk+P.weapon+Math.floor(Math.random()*7)-enemy.def));
- log(`你造成 <b>${d}</b> 点伤害${crit?'（暴击！）':''}`);
- if(enemy.hp<=0)return win();
- enemyTurn();
-}
-function skill(){
- const cost=15;if(P.mp<cost){toast('魔力不足');return}
- P.mp-=cost;let mult=C.id==='mage'?2.2:C.id==='knight'?1.8:1.95;
- let [d,crit]=hit(Math.max(1,Math.floor((P.atk+P.weapon)*mult+Math.random()*8-enemy.def)));
- log(`✨ ${C.skill} 造成 <b>${d}</b> 点伤害${crit?'（暴击！）':''}`);
- if(enemy.hp<=0)return win();enemyTurn();
-}
-function defend(){P._guard=1;log('🛡️ 你进入防御姿态。');enemyTurn()}
-function potion(){
- if(P.potions<=0){toast('没有药水了');return}
- P.potions--;P.hp=Math.min(P.maxHp,P.hp+Math.floor(P.maxHp*.38));P.mp=Math.min(P.maxMp,P.mp+12);log('🧪 恢复生命与魔力。');enemyTurn()
-}
-function enemyTurn(){
- let d=Math.max(1,enemy.atk+Math.floor(Math.random()*6)-P.def-Math.floor(P.armor/2));
- if(P._guard){d=Math.floor(d*.45);P._guard=0}
- P.hp=Math.max(0,P.hp-d);log(`👹 ${enemy.name} 反击，造成 <b>${d}</b> 点伤害`);
- if(P.hp<=0){alert('你倒下了……');P.hp=Math.ceil(P.maxHp*.5);P.mp=Math.ceil(P.maxMp*.5);enemy=null;showPage('battle')}
-}
-function win(){
- P.xp+=enemy.xp;P.gold+=Math.floor(enemy.xp*1.4);log(`🎉 击败 ${enemy.name}！获得 ${enemy.xp} XP。`);
- while(P.xp>=P.next){P.xp-=P.next;P.level++;P.next=Math.floor(P.next*1.35);P.maxHp+=18;P.maxMp+=8;P.atk+=4;P.def+=2;P.hp=P.maxHp;P.mp=P.maxMp}
- setTimeout(()=>{enemy=null;newBattle()},500);
-}
-function renderMap(){
- const unlocked=P.level>=2, boss=P.level>=4;
- $('page').innerHTML=`<div class="card"><h3>🗺️ 世界地图</h3>
- <button class="mapbtn ${stage==='forest'?'primary':''}" onclick="travel('forest')">🌲 迷雾森林 <span>Lv.1+</span></button>
- <button class="mapbtn ${stage==='desert'?'primary':''}" ${unlocked?'':'disabled'} onclick="travel('desert')">🏜️ 赤砂荒原 <span>Lv.2+</span></button>
- <button class="mapbtn ${stage==='castle'?'primary':''}" ${boss?'':'disabled'} onclick="travel('castle')">🏰 魔王城 <span>Lv.4+</span></button>
- <div class="notice">提升等级后解锁新的区域。魔王城中的敌人经验和金币更多。</div></div>`;
-}
-function travel(s){stage=s;enemy=null;showPage('battle');newBattle()}
-function renderShop(){
- $('page').innerHTML=`<div class="card"><h3>🛒 星火商店</h3>
- <div class="shopitem"><span>🧪 回复药水<br><small>恢复约 38% HP + 12 MP</small></span><button onclick="buyPotion()">20💰</button></div>
- <div class="shopitem"><span>⚔️ 精炼武器<br><small>攻击 +8</small></span><button onclick="buyWeapon()">120💰</button></div>
- <div class="shopitem"><span>🛡️ 星纹护甲<br><small>防御 +6</small></span><button onclick="buyArmor()">120💰</button></div></div>`;
-}
-function buyPotion(){if(P.gold<20)return toast('金币不足');P.gold-=20;P.potions++;renderShop();renderHero()}
-function buyWeapon(){if(P.gold<120)return toast('金币不足');P.gold-=120;P.weapon+=8;renderShop();renderHero()}
-function buyArmor(){if(P.gold<120)return toast('金币不足');P.gold-=120;P.armor+=6;renderShop();renderHero()}
-initClasses();
-</script>
-</body>
-</html>
+function talk(n){if(n==='铁匠'){let text=S.quest===0?'铁匠：森林里的精英魔物袭击商路，帮我清掉它。':'铁匠：回来得正好，我可以强化你的装备。';$('dialogText').textContent=text;$('dialogBtns').innerHTML=(S.quest===0?'<button onclick="acceptQuest()">接受任务</button>':'')+'<button onclick="upgrade()">🔨 强化（100G）</button><button onclick="closeDialog()">离开</button>'}else{$('dialogText').textContent='占卜师：森林东侧有一条通往城堡的路。魔王进入第二阶段后会改变攻击模式。';$('dialogBtns').innerHTML='<button onclick="closeDialog()">知道了</button>'}$('dialog').style.display='block'}
+function closeDialog(){$('dialog').style.display='none'}
+function acceptQuest(){S.quest=1;closeDialog();log('📜 主线：击败森林精英魔物');save();update()}
+function upgrade(){if(S.gold<100)return log('金币不足');S.gold-=100;S.weapon++;S.armor++;S.atk+=5;S.def+=2;log('🔨 装备强化：攻击+5、防御+2');closeDialog();save();update()}
+function gainXP(n){S.xp+=n;while(S.xp>=S.level*90){S.xp-=S.level*90;S.level++;S.maxhp+=20;S.maxmp+=9;S.hp=S.maxhp;S.mp=S.maxmp;S.atk+=3;S.def++;S.talent++;log('✨ 升级！Lv.'+S.level)}update()}
+function startBattle(type){S.scene='battle';battleEnemy={type,max:type==='boss'?500:type==='elite'?180:95,hp:type==='boss'?500:type==='elite'?180:95,phase:1};hero.visible=true;clear();hero.position.set(-3,0,0);$('battle').style.display='block';$('battleTitle').textContent=type==='boss'?'👑 终焉魔王':type==='elite'?'⚔ 精英魔物':'⚔ 魔物';$('bossbar').style.display=type==='boss'?'block':'none';battleEnemy.mesh=enemyModel(type);battleEnemy.mesh.position.set(3,0,0);scene.add(battleEnemy.mesh);log('⚔ 战斗开始');update()}
+function effect(c){let g=new THREE.Group(),r=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,28),mat(c));r.rotation.x=Math.PI/2;g.add(r);g.position.set(0,1,0);scene.add(g);let n=0,id=setInterval(()=>{n++;g.scale.multiplyScalar(1.12);g.rotation.z+=.35;if(n>10){clearInterval(id);scene.remove(g)}},25)}
+function endBattle(win){if(battleEnemy){scene.remove(battleEnemy.mesh)}$('battle').style.display='none';S.scene='forest';hero.position.set(0,0,4);if(win){let g=battleEnemy.type==='boss'?600:battleEnemy.type==='elite'?160:60;S.gold+=g;S.kills++;gainXP(battleEnemy.type==='boss'?400:battleEnemy.type==='elite'?130:60);log('🏆 胜利！获得 '+g+'G');if(battleEnemy.type==='elite'&&S.quest===1){S.quest=2;S.gold+=200;S.atk+=5;log('📜 清剿任务完成：额外 +200G、攻击+5')}if(battleEnemy.type==='boss'){S.boss=true;S.chapter=2;log('🌅 终焉之门关闭了。冒险完成！')}}else{S.hp=Math.max(1,Math.floor(S.maxhp*.4));log('💥 战败，回到森林')}buildForest();save();update()}
+window.battleAct=function(a){if(!battleEnemy)return;let d=0;if(a==='attack')d=S.atk+Math.floor(Math.random()*9);if(a==='skill'){if(S.mp<12)return log('MP不足');S.mp-=12;d=S.atk*2+Math.floor(Math.random()*15);effect(0xff7a18)}if(a==='guard'){S.guard=true;log('🛡 防御：本回合受到伤害降低');return enemyTurn()}if(a==='burst'){if(S.mp<28)return log('MP不足');S.mp-=28;d=S.atk*3+25;effect(0x55aaff)}if(Math.random()<S.crit){d*=2;log('💥 暴击！')}battleEnemy.hp-=Math.floor(d);log('你造成 '+Math.floor(d)+' 点伤害');if(battleEnemy.type==='boss'&&battleEnemy.hp<battleEnemy.max*.5&&battleEnemy.phase===1){battleEnemy.phase=2;log('👑 魔王进入第二阶段：攻击大幅强化')}if(battleEnemy.hp<=0)return endBattle(true);$('bossHp').style.width=Math.max(0,battleEnemy.hp/battleEnemy.max*100)+'%';enemyTurn();update()}
+function enemyTurn(){let d=battleEnemy.type==='boss'?26:battleEnemy.type==='elite'?16:10;if(battleEnemy.phase===2)d+=12;d=Math.max(1,Math.floor(d-S.def*.45));if(S.guard){d=Math.floor(d*.4);S.guard=false}S.hp-=d;log('敌人反击 '+d+' 点');if(S.hp<=0)endBattle(false);update()}
+$('start').onclick=()=>{$('title').style.display='none';started=true;log('🔥 冒险开始');save()}
+$('interact').onclick=interact;
+$('heal').onclick=()=>{if(S.pot<=0)return log('没有药水');S.pot--;S.hp=Math.min(S.maxhp,S.hp+Math.floor(S.maxhp*.45));log('🧪 恢复生命');save();update()}
+$('talent').onclick=()=>{if(S.talent<=0)return log('没有天赋点');S.talent--;S.atk+=2;S.crit+=.02;log('🌟 天赋强化：攻击+2、暴击+2%');save();update()}
+$('run').onclick=()=>S.scene==='battle'?endBattle(false):log('现在不能撤退');
+$('menuBtn').onclick=()=>{$('menu').style.display=$('menu').style.display==='block'?'none':'block';update()}
+$('questBtn').onclick=()=>{$('quest').style.display=$('quest').style.display==='block'?'none':'block';update()}
+$('closeMenu').onclick=()=>$('menu').style.display='none';$('closeQuest').onclick=()=>$('quest').style.display='none';$('saveBtn').onclick=save;$('upgrade').onclick=upgrade;
+function update(){$('mode').textContent=S.scene==='battle'?'战斗':S.scene==='town'?'村庄':S.scene==='forest'?'森林':'城堡';$('stats').innerHTML=`Lv.${S.level}　❤️ ${Math.ceil(S.hp)}/${S.maxhp}<div class="bar"><div class="hp" style="width:${Math.max(0,S.hp/S.maxhp*100)}%"></div></div><div class="bar"><div class="mp" style="width:${Math.max(0,S.mp/S.maxmp*100)}%"></div></div>`;$('lv').textContent=S.level;$('atk').textContent=S.atk;$('def').textContent=S.def;$('crit').textContent=Math.round(S.crit*100)+'%';$('gold').textContent=S.gold;$('tp').textContent=S.talent;$('weapon').textContent='Lv.'+S.weapon;$('armor').textContent='Lv.'+S.armor;$('questText').innerHTML=S.quest===0?'尚未接取任务。<br>去村庄找铁匠。':S.quest===1?'清剿森林精英魔物。<br>完成后回村庄找铁匠。':S.boss?'终焉之门已关闭。<br>主线完成。':'清剿任务已完成。<br>前往深渊城堡挑战魔王。'}
+let joy={on:false,x:0,y:0};function joyMove(e){let r=$('joystick').getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),m=Math.min(45,Math.hypot(x,y)),a=Math.atan2(y,x);joy.x=Math.cos(a)*m/45;joy.y=Math.sin(a)*m/45;$('stick').style.transform=`translate(${joy.x*42}px,${joy.y*42}px)`}
+$('joystick').onpointerdown=e=>{joy.on=true;$('joystick').setPointerCapture(e.pointerId);joyMove(e)};$('joystick').onpointermove=e=>{if(joy.on)joyMove(e)};$('joystick').onpointerup=()=>{joy.on=false;joy.x=joy.y=0;$('stick').style.transform='translate(0,0)'};
+let keys={};onkeydown=e=>keys[e.key.toLowerCase()]=true;onkeyup=e=>keys[e.key.toLowerCase()]=false;
+function move(dt){if(S.scene==='battle'||!started)return;let x=joy.x+(keys.d?1:0)-(keys.a?1:0),z=joy.y+(keys.s?1:0)-(keys.w?1:0),m=Math.hypot(x,z);if(m){x/=m;z/=m;hero.position.x+=x*dt*4.5;hero.position.z+=z*dt*4.5;hero.rotation.y=Math.atan2(x,z)}hero.position.x=Math.max(-13,Math.min(13,hero.position.x));hero.position.z=Math.max(-13,Math.min(13,hero.position.z))}
+function init(){renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;$('game').appendChild(renderer.domElement);scene=new THREE.Scene();scene.background=new THREE.Color(0x07101c);scene.fog=new THREE.Fog(0x07101c,18,48);cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);clock=new THREE.Clock();scene.add(new THREE.HemisphereLight(0xa8c8ff,0x202018,1.8));let sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(8,14,6);sun.castShadow=true;scene.add(sun);hero=heroModel();scene.add(hero);buildTown();update();loop()}
+function loop(){requestAnimationFrame(loop);let dt=Math.min(clock.getDelta(),.05);move(dt);let t=hero.position.clone();let off=S.scene==='battle'?new THREE.Vector3(0,4.5,8):new THREE.Vector3(0,8,10);cam.position.lerp(t.clone().add(off),.08);cam.lookAt(t.x,t.y+1,t.z);renderer.render(scene,cam)}
+onresize=()=>{if(renderer){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}};init()
+</script></body></html>
